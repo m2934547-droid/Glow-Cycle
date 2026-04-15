@@ -3,20 +3,35 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: GlowCycle - Smart Period Tracker & Women's Health Companion API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: cycles
+    description: Menstrual cycle tracking
+  - name: calendar
+    description: Calendar and notes
+  - name: products
+    description: Period care store products
+  - name: cart
+    description: Shopping cart operations
+  - name: admin
+    description: Admin panel operations
+  - name: wellness
+    description: Health & wellness content
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +39,460 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/signup:
+    post:
+      operationId: signup
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current logged-in user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/profile:
+    put:
+      operationId: updateProfile
+      tags: [users]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /cycles:
+    get:
+      operationId: getCycles
+      tags: [cycles]
+      summary: Get all cycle history for current user
+      responses:
+        "200":
+          description: List of cycles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cycle"
+    post:
+      operationId: createCycle
+      tags: [cycles]
+      summary: Log a new cycle entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCycleBody"
+      responses:
+        "201":
+          description: Cycle created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cycle"
+
+  /cycles/current:
+    get:
+      operationId: getCurrentCycle
+      tags: [cycles]
+      summary: Get current cycle prediction (next period, ovulation, fertile window)
+      responses:
+        "200":
+          description: Current cycle prediction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CyclePrediction"
+
+  /cycles/{cycleId}:
+    delete:
+      operationId: deleteCycle
+      tags: [cycles]
+      summary: Delete a cycle entry
+      parameters:
+        - name: cycleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /calendar/notes:
+    get:
+      operationId: getCalendarNotes
+      tags: [calendar]
+      summary: Get all calendar notes for current user
+      responses:
+        "200":
+          description: List of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CalendarNote"
+    post:
+      operationId: createCalendarNote
+      tags: [calendar]
+      summary: Create or update a note for a date
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCalendarNoteBody"
+      responses:
+        "201":
+          description: Note saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarNote"
+
+  /calendar/notes/{noteId}:
+    delete:
+      operationId: deleteCalendarNote
+      tags: [calendar]
+      summary: Delete a calendar note
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /products:
+    get:
+      operationId: getProducts
+      tags: [products]
+      summary: Get all store products
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Admin - Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{productId}:
+    put:
+      operationId: updateProduct
+      tags: [products]
+      summary: Admin - Update a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Admin - Delete a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get current user's cart
+      responses:
+        "200":
+          description: Cart items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToCartBody"
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: clearCart
+      tags: [cart]
+      summary: Clear the cart
+      responses:
+        "200":
+          description: Cart cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /cart/{itemId}:
+    delete:
+      operationId: removeCartItem
+      tags: [cart]
+      summary: Remove an item from cart
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Item removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/checkout:
+    post:
+      operationId: checkout
+      tags: [cart]
+      summary: Checkout (simulated)
+      responses:
+        "200":
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutResponse"
+
+  /admin/users:
+    get:
+      operationId: adminGetUsers
+      tags: [admin]
+      summary: Admin - Get all users
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{userId}:
+    delete:
+      operationId: adminDeleteUser
+      tags: [admin]
+      summary: Admin - Delete a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Admin - Get platform statistics
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /wellness/tips:
+    get:
+      operationId: getWellnessTips
+      tags: [wellness]
+      summary: Get wellness tips for current cycle phase
+      parameters:
+        - name: phase
+          in: query
+          schema:
+            type: string
+            enum: [menstrual, follicular, ovulation, luteal]
+      responses:
+        "200":
+          description: Wellness tips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WellnessTips"
+
+  /wellness/quotes:
+    get:
+      operationId: getMotivationalQuote
+      tags: [wellness]
+      summary: Get a random motivational quote
+      responses:
+        "200":
+          description: A quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +500,313 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    SignupBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        age:
+          type: integer
+        heightCm:
+          type: number
+        weightKg:
+          type: number
+      required: [name, email, password, age, heightCm, weightKg]
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        message:
+          type: string
+      required: [user, message]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+        heightCm:
+          type: number
+        weightKg:
+          type: number
+        bmi:
+          type: number
+        bmiCategory:
+          type: string
+        isAdmin:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, email, age, heightCm, weightKg, bmi, bmiCategory, isAdmin, createdAt]
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+        heightCm:
+          type: number
+        weightKg:
+          type: number
+
+    Cycle:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        startDate:
+          type: string
+        cycleLength:
+          type: integer
+        notes:
+          type: string
+        createdAt:
+          type: string
+      required: [id, userId, startDate, cycleLength, createdAt]
+
+    CreateCycleBody:
+      type: object
+      properties:
+        startDate:
+          type: string
+        cycleLength:
+          type: integer
+        notes:
+          type: string
+      required: [startDate, cycleLength]
+
+    CyclePrediction:
+      type: object
+      properties:
+        lastPeriodStart:
+          type: string
+        nextPeriodDate:
+          type: string
+        ovulationDate:
+          type: string
+        fertileWindowStart:
+          type: string
+        fertileWindowEnd:
+          type: string
+        currentPhase:
+          type: string
+        cycleDay:
+          type: integer
+        cycleLength:
+          type: integer
+        daysUntilNextPeriod:
+          type: integer
+      required: [lastPeriodStart, nextPeriodDate, ovulationDate, fertileWindowStart, fertileWindowEnd, currentPhase, cycleDay, cycleLength, daysUntilNextPeriod]
+
+    CalendarNote:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        date:
+          type: string
+        note:
+          type: string
+        createdAt:
+          type: string
+      required: [id, userId, date, note, createdAt]
+
+    CreateCalendarNoteBody:
+      type: object
+      properties:
+        date:
+          type: string
+        note:
+          type: string
+      required: [date, note]
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        category:
+          type: string
+        imageUrl:
+          type: string
+        inStock:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, description, price, category, inStock, createdAt]
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        category:
+          type: string
+        imageUrl:
+          type: string
+        inStock:
+          type: boolean
+      required: [name, description, price, category, inStock]
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        product:
+          $ref: "#/components/schemas/Product"
+        quantity:
+          type: integer
+      required: [id, productId, product, quantity]
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        total:
+          type: number
+      required: [items, total]
+
+    AddToCartBody:
+      type: object
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+      required: [productId, quantity]
+
+    CheckoutResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+        message:
+          type: string
+        total:
+          type: number
+      required: [orderId, message, total]
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+        isAdmin:
+          type: boolean
+        cycleCount:
+          type: integer
+        createdAt:
+          type: string
+      required: [id, name, email, age, isAdmin, cycleCount, createdAt]
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalCycles:
+          type: integer
+        totalProducts:
+          type: integer
+        activeUsersThisMonth:
+          type: integer
+      required: [totalUsers, totalCycles, totalProducts, activeUsersThisMonth]
+
+    WellnessTips:
+      type: object
+      properties:
+        phase:
+          type: string
+        phaseDescription:
+          type: string
+        dietTips:
+          type: array
+          items:
+            type: string
+        exerciseTips:
+          type: array
+          items:
+            type: string
+        selfCareTips:
+          type: array
+          items:
+            type: string
+        moodTips:
+          type: array
+          items:
+            type: string
+      required: [phase, phaseDescription, dietTips, exerciseTips, selfCareTips, moodTips]
+
+    Quote:
+      type: object
+      properties:
+        text:
+          type: string
+        author:
+          type: string
+      required: [text, author]
