@@ -18,6 +18,7 @@ import Cart from "@/pages/cart";
 import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
+import { Chatbot } from "@/components/chatbot";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,7 @@ function Router() {
         
         <Route component={NotFound} />
       </Switch>
+      <Chatbot />
     </Layout>
   );
 }

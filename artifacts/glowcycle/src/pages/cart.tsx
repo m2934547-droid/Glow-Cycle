@@ -131,7 +131,7 @@ export default function Cart() {
                         <p className="text-sm text-muted-foreground mt-1">Qty: {item.quantity}</p>
                       </div>
                       <p className="font-bold text-primary whitespace-nowrap">
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        ₹{(item.product.price * item.quantity).toFixed(0)}
                       </p>
                     </div>
                     
@@ -160,7 +160,7 @@ export default function Cart() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span>${cart.total.toFixed(2)}</span>
+                  <span>₹{cart.total.toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
@@ -168,7 +168,7 @@ export default function Cart() {
                 </div>
                 <div className="border-t border-border pt-4 flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span className="text-primary">${cart.total.toFixed(2)}</span>
+                  <span className="text-primary">₹{cart.total.toFixed(0)}</span>
                 </div>
               </CardContent>
               <CardFooter>

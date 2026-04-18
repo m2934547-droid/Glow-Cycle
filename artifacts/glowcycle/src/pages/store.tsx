@@ -11,19 +11,19 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  "All",
-  "Sanitary Pads",
-  "Tampons",
-  "Menstrual Cups",
-  "Pain Relief",
-  "Heating Pads",
-  "Comfort Kits"
+  { label: "All", value: "all" },
+  { label: "Sanitary Pads", value: "pads" },
+  { label: "Tampons", value: "tampons" },
+  { label: "Menstrual Cups", value: "menstrual-cups" },
+  { label: "Pain Relief", value: "pain-relief" },
+  { label: "Heating Pads", value: "heating-pads" },
+  { label: "Comfort Kits", value: "comfort-kits" },
 ];
 
 export default function Store() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   
-  const queryParams = selectedCategory === "All" ? undefined : { category: selectedCategory };
+  const queryParams = selectedCategory === "all" ? undefined : { category: selectedCategory };
   const { data: products, isLoading } = useGetProducts(queryParams, { 
     query: { queryKey: getGetProductsQueryKey(queryParams) } 
   });
@@ -68,16 +68,16 @@ export default function Store() {
       >
         {CATEGORIES.map(category => (
           <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
+            key={category.value}
+            onClick={() => setSelectedCategory(category.value)}
             className={cn(
               "px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
-              selectedCategory === category
+              selectedCategory === category.value
                 ? "bg-primary text-primary-foreground border-primary shadow-md"
                 : "bg-card text-muted-foreground border-border hover:border-primary/50 hover:text-primary"
             )}
           >
-            {category}
+            {category.label}
           </button>
         ))}
       </motion.div>
@@ -135,7 +135,7 @@ export default function Store() {
                     <Badge variant="outline" className="bg-background/50 text-[10px] uppercase tracking-wider text-muted-foreground border-primary/20">
                       {product.category}
                     </Badge>
-                    <span className="font-bold text-lg text-primary">${product.price.toFixed(2)}</span>
+                    <span className="font-bold text-lg text-primary">₹{product.price.toFixed(0)}</span>
                   </div>
                   <CardTitle className="text-lg font-serif line-clamp-1" title={product.name}>{product.name}</CardTitle>
                 </CardHeader>

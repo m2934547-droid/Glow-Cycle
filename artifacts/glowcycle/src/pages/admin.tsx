@@ -290,7 +290,7 @@ export default function Admin() {
                           {product.name}
                         </TableCell>
                         <TableCell>{product.category}</TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>₹{product.price.toFixed(0)}</TableCell>
                         <TableCell>
                           {product.inStock ? (
                             <span className="text-green-600 font-medium text-sm">In Stock</span>
@@ -357,7 +357,7 @@ export default function Admin() {
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Price ($)</FormLabel>
+                      <FormLabel>Price (₹)</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.01" className="rounded-xl" {...field} />
                       </FormControl>
