@@ -1,9 +1,8 @@
 import { Router, type IRouter } from "express";
-import { eq, count } from "drizzle-orm";
-import { db, usersTable, cyclesTable, productsTable } from "@workspace/db";
+import { eq, count, gte, sql } from "drizzle-orm";
+import { db, usersTable, cyclesTable, productsTable, ordersTable } from "@workspace/db";
 import { AdminDeleteUserParams } from "@workspace/api-zod";
 import { requireAuth } from "./users";
-import { formatUser } from "./auth";
 
 const router: IRouter = Router();
 
@@ -61,21 +60,45 @@ router.get("/admin/stats", async (req, res): Promise<void> => {
   const isAdmin = await requireAdmin(req, res);
   if (!isAdmin) return;
 
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
   const [userCount] = await db.select({ count: count() }).from(usersTable);
   const [cycleCount] = await db.select({ count: count() }).from(cyclesTable);
   const [productCount] = await db.select({ count: count() }).from(productsTable);
 
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  // New users in last 30 days
+  const [newUsersResult] = await db
+    .select({ count: count() })
+    .from(usersTable)
+    .where(gte(usersTable.createdAt, thirtyDaysAgo));
 
-  const allUsers = await db.select().from(usersTable);
-  const activeThisMonth = allUsers.filter(u => u.createdAt >= oneMonthAgo).length;
+  // Orders in last 30 days
+  const [ordersResult] = await db
+    .select({ count: count() })
+    .from(ordersTable)
+    .where(gte(ordersTable.createdAt, thirtyDaysAgo));
+
+  // Revenue in last 30 days
+  const revenueResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(total), 0)` })
+    .from(ordersTable)
+    .where(gte(ordersTable.createdAt, thirtyDaysAgo));
+
+  // Total items ordered in last 30 days
+  const itemsResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(item_count), 0)` })
+    .from(ordersTable)
+    .where(gte(ordersTable.createdAt, thirtyDaysAgo));
 
   res.json({
     totalUsers: Number(userCount.count),
     totalCycles: Number(cycleCount.count),
     totalProducts: Number(productCount.count),
-    activeUsersThisMonth: activeThisMonth,
+    activeUsersThisMonth: Number(newUsersResult.count),
+    ordersLast30Days: Number(ordersResult.count),
+    revenueLastl30Days: Math.round(Number(revenueResult[0]?.total ?? 0)),
+    itemsOrderedLast30Days: Number(itemsResult[0]?.total ?? 0),
   });
 });
 

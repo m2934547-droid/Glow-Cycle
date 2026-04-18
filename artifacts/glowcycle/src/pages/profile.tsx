@@ -9,10 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, Activity, CheckCircle2 } from "lucide-react";
+import { User, Activity, CheckCircle2, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+import { useLocation } from "wouter";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -26,58 +27,47 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export default function Profile() {
   const { data: user, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const updateProfileMutation = useUpdateProfile();
-  
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: "",
-      age: 0,
-      heightCm: 0,
-      weightKg: 0,
-    },
+    defaultValues: { name: "", age: 0, heightCm: 0, weightKg: 0 },
   });
 
   useEffect(() => {
     if (user) {
-      form.reset({
-        name: user.name,
-        age: user.age,
-        heightCm: user.heightCm,
-        weightKg: user.weightKg,
-      });
+      form.reset({ name: user.name, age: user.age, heightCm: user.heightCm, weightKg: user.weightKg });
     }
   }, [user, form]);
 
   const onSubmit = (data: ProfileFormValues) => {
-    updateProfileMutation.mutate(
-      { data },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
-          toast({ 
-            title: "Profile updated", 
-            description: "Your profile has been saved successfully.",
-          });
-        },
-        onError: () => {
-          toast({ 
-            title: "Update failed", 
-            description: "Could not update your profile.", 
-            variant: "destructive" 
-          });
-        },
-      }
-    );
+    updateProfileMutation.mutate({ data }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+        toast({ title: "Profile updated", description: "Your profile has been saved successfully." });
+      },
+      onError: () => {
+        toast({ title: "Update failed", description: "Could not update your profile.", variant: "destructive" });
+      },
+    });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch {}
+    queryClient.clear();
+    navigate("/");
+    window.location.reload();
   };
 
   const getBmiColor = (category?: string) => {
-    if (!category) return 'bg-muted text-muted-foreground';
-    if (category.toLowerCase().includes('normal')) return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200';
-    if (category.toLowerCase().includes('under')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200';
-    return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200';
+    if (!category) return "bg-muted text-muted-foreground";
+    if (category.toLowerCase().includes("normal")) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200";
+    if (category.toLowerCase().includes("under")) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200";
+    return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200";
   };
 
   if (isLoading) {
@@ -91,12 +81,22 @@ export default function Profile() {
 
   return (
     <div className="max-w-2xl mx-auto pb-10 space-y-8">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground flex items-center gap-3">
-          <User className="h-8 w-8 text-primary" />
-          Your Profile
-        </h1>
-        <p className="text-muted-foreground mt-2 text-lg">Manage your personal information and health data.</p>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground flex items-center gap-3">
+            <User className="h-8 w-8 text-primary" />
+            Your Profile
+          </h1>
+          <p className="text-muted-foreground mt-2 text-lg">Manage your personal information and health data.</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleLogout}
+          className="gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive mt-1 shrink-0"
+        >
+          <LogOut className="h-4 w-4" />
+          Log Out
+        </Button>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -111,7 +111,7 @@ export default function Profile() {
                 <Activity className="h-6 w-6" />
               </div>
             </div>
-            
+
             {user && (
               <div className="mt-6 flex flex-wrap items-end gap-4">
                 <div>
@@ -127,68 +127,40 @@ export default function Profile() {
           <CardContent className="pt-8">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
+                <FormField control={form.control} name="name" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Full Name</FormLabel>
+                    <FormControl><Input className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField control={form.control} name="age" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base">Full Name</FormLabel>
-                      <FormControl>
-                        <Input className="h-12 rounded-xl bg-background/50" {...field} />
-                      </FormControl>
+                      <FormLabel className="text-base">Age</FormLabel>
+                      <FormControl><Input type="number" className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="age"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base">Age</FormLabel>
-                        <FormControl>
-                          <Input type="number" className="h-12 rounded-xl bg-background/50" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="heightCm"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base">Height (cm)</FormLabel>
-                        <FormControl>
-                          <Input type="number" className="h-12 rounded-xl bg-background/50" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="weightKg"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base">Weight (kg)</FormLabel>
-                        <FormControl>
-                          <Input type="number" className="h-12 rounded-xl bg-background/50" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  )} />
+                  <FormField control={form.control} name="heightCm" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Height (cm)</FormLabel>
+                      <FormControl><Input type="number" className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="weightKg" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">Weight (kg)</FormLabel>
+                      <FormControl><Input type="number" className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                 </div>
 
                 <div className="pt-4 flex justify-end">
-                  <Button 
-                    type="submit" 
-                    className="h-12 px-8 rounded-xl text-lg hover-elevate shadow-md gap-2"
-                    disabled={updateProfileMutation.isPending}
-                  >
+                  <Button type="submit" className="h-12 px-8 rounded-xl text-lg shadow-md gap-2" disabled={updateProfileMutation.isPending}>
                     {updateProfileMutation.isPending ? "Saving..." : <><CheckCircle2 className="h-5 w-5" /> Save Changes</>}
                   </Button>
                 </div>

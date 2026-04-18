@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and } from "drizzle-orm";
-import { db, cartItemsTable, productsTable } from "@workspace/db";
+import { db, cartItemsTable, productsTable, ordersTable } from "@workspace/db";
 import { AddToCartBody, RemoveCartItemParams } from "@workspace/api-zod";
 import { requireAuth } from "./users";
 import { randomUUID } from "crypto";
@@ -105,11 +105,14 @@ router.post("/cart/checkout", async (req, res): Promise<void> => {
 
   const cart = await getUserCart(userId);
   const total = cart.total;
+  const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const orderId = `GC-${randomUUID().slice(0, 8).toUpperCase()}`;
 
   await db.delete(cartItemsTable).where(eq(cartItemsTable.userId, userId));
+  await db.insert(ordersTable).values({ userId, orderId, total, itemCount });
 
   res.json({
-    orderId: `GC-${randomUUID().slice(0, 8).toUpperCase()}`,
+    orderId,
     message: "Order placed successfully! Your period care is on the way.",
     total,
   });
