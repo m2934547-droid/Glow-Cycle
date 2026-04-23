@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HeartPulse, Droplets, Apple, Dumbbell, Coffee, Smile } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { MusicSuggestions } from "@/components/music-suggestions";
 
 export default function Wellness() {
   const { data: currentCycle, isLoading: isCycleLoading } = useGetCurrentCycle({ query: { queryKey: getGetCurrentCycleQueryKey() } });
@@ -99,6 +100,8 @@ export default function Wellness() {
               </CardContent>
             </Card>
           </motion.div>
+
+          <MusicSuggestions phase={activePhase} />
 
           <div className="grid md:grid-cols-2 gap-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
