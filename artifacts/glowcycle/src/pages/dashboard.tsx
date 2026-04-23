@@ -50,7 +50,12 @@ export default function Dashboard() {
       >
         <div>
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
-            Good morning, <span className="text-primary">{user?.name}</span>
+            {(() => {
+              const h = new Date().getHours();
+              if (h < 12) return "Good morning";
+              if (h < 17) return "Good afternoon";
+              return "Good evening";
+            })()}, <span className="text-primary">{user?.name}</span>
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">Here's your wellness overview today.</p>
         </div>
