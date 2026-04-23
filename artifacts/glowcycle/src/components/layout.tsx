@@ -21,7 +21,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const navItems = [
+  const userNavItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/tracker", label: "Tracker", icon: Droplet },
     { href: "/calendar", label: "Calendar", icon: CalendarIcon },
@@ -30,10 +30,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/profile", label: "Profile", icon: User },
   ];
 
-  if (user?.isAdmin) {
-    navItems.push({ href: "/admin/users", label: "Users", icon: UsersIcon });
-    navItems.push({ href: "/admin/products", label: "Products", icon: Package });
-  }
+  const adminNavItems = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/users", label: "Users", icon: UsersIcon },
+    { href: "/admin/products", label: "Products", icon: Package },
+  ];
+
+  const navItems = user?.isAdmin ? adminNavItems : userNavItems;
+  const showCart = !user?.isAdmin;
 
   const cartItemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
@@ -74,14 +78,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
                 <div className="h-6 w-px bg-border mx-1 lg:mx-2" />
 
-                <Link href="/cart" className="relative p-2 text-muted-foreground hover:text-primary transition-colors shrink-0">
-                  <ShoppingBag className="h-5 w-5" />
-                  {cartItemCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-                      {cartItemCount}
-                    </span>
-                  )}
-                </Link>
+                {showCart && (
+                  <Link href="/cart" className="relative p-2 text-muted-foreground hover:text-primary transition-colors shrink-0">
+                    <ShoppingBag className="h-5 w-5" />
+                    {cartItemCount > 0 && (
+                      <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
 
                 <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0">
                   <LogOut className="h-5 w-5" />
@@ -103,14 +109,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex md:hidden items-center gap-1 shrink-0">
             {user ? (
               <>
-                <Link href="/cart" className="relative p-2 text-muted-foreground hover:text-primary transition-colors">
-                  <ShoppingBag className="h-5 w-5" />
-                  {cartItemCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-                      {cartItemCount}
-                    </span>
-                  )}
-                </Link>
+                {showCart && (
+                  <Link href="/cart" className="relative p-2 text-muted-foreground hover:text-primary transition-colors">
+                    <ShoppingBag className="h-5 w-5" />
+                    {cartItemCount > 0 && (
+                      <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
                 <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                   <LogOut className="h-5 w-5" />
                 </Button>
@@ -137,14 +145,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {user && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur pb-safe z-50">
           <div className="flex items-center justify-around px-1 py-2">
-            {[
-              { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
-              { href: "/tracker", icon: Droplet, label: "Tracker" },
-              { href: "/calendar", icon: CalendarIcon, label: "Calendar" },
-              { href: "/wellness", icon: HeartPulse, label: "Wellness" },
-              { href: "/store", icon: ShoppingBag, label: "Store" },
-              { href: "/profile", icon: User, label: "Profile" },
-            ].map((item) => (
+            {(user.isAdmin
+              ? [
+                  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
+                  { href: "/admin/users", icon: UsersIcon, label: "Users" },
+                  { href: "/admin/products", icon: Package, label: "Products" },
+                ]
+              : [
+                  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
+                  { href: "/tracker", icon: Droplet, label: "Tracker" },
+                  { href: "/calendar", icon: CalendarIcon, label: "Calendar" },
+                  { href: "/wellness", icon: HeartPulse, label: "Wellness" },
+                  { href: "/store", icon: ShoppingBag, label: "Store" },
+                  { href: "/profile", icon: User, label: "Profile" },
+                ]
+            ).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

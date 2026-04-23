@@ -9,8 +9,9 @@ import { AdminStats } from "@/components/admin-stats";
 
 export default function Dashboard() {
   const { data: user, isLoading: isUserLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
-  const { data: currentCycle, isLoading: isCycleLoading } = useGetCurrentCycle({ query: { queryKey: getGetCurrentCycleQueryKey() } });
-  const { data: quote, isLoading: isQuoteLoading } = useGetMotivationalQuote({ query: { queryKey: getGetMotivationalQuoteQueryKey() } });
+  const isAdmin = !!user?.isAdmin;
+  const { data: currentCycle, isLoading: isCycleLoading } = useGetCurrentCycle({ query: { queryKey: getGetCurrentCycleQueryKey(), enabled: !isAdmin } });
+  const { data: quote, isLoading: isQuoteLoading } = useGetMotivationalQuote({ query: { queryKey: getGetMotivationalQuoteQueryKey(), enabled: !isAdmin } });
 
   const getPhaseColor = (phase?: string) => {
     switch (phase?.toLowerCase()) {
@@ -29,7 +30,7 @@ export default function Dashboard() {
     return 'text-orange-600 dark:text-orange-400';
   };
 
-  if (isUserLoading || isCycleLoading) {
+  if (isUserLoading || (!isAdmin && isCycleLoading)) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-12 w-64 rounded-xl" />
@@ -58,13 +59,17 @@ export default function Dashboard() {
               return "Good evening";
             })()}, <span className="text-primary">{user?.name}</span>
           </h1>
-          <p className="text-muted-foreground mt-2 text-lg">Here's your wellness overview today.</p>
+          <p className="text-muted-foreground mt-2 text-lg">
+            {isAdmin ? "Platform overview and key metrics." : "Here's your wellness overview today."}
+          </p>
         </div>
       </motion.div>
 
+      {isAdmin ? (
+        <AdminStats />
+      ) : (
+        <>
       <SharedWithMe />
-
-      {user?.isAdmin && <AdminStats />}
 
       {/* Quote Section */}
       <motion.div 
@@ -205,6 +210,8 @@ export default function Dashboard() {
         </motion.div>
 
       </div>
+        </>
+      )}
     </div>
   );
 }
