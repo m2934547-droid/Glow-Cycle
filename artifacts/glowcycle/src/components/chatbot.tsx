@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useGetMe } from "@workspace/api-client-react";
 
 interface Message {
   id: number;
@@ -127,6 +128,7 @@ const WELCOME_MESSAGE: Message = {
 };
 
 export function Chatbot() {
+  const { data: user } = useGetMe();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
@@ -138,6 +140,8 @@ export function Chatbot() {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen]);
+
+  if (!user) return null;
 
   function findAnswer(query: string): string {
     const q = query.toLowerCase().trim();
