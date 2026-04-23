@@ -424,6 +424,67 @@ export const GetSharedWithMeResponseItem = zod.object({
 export const GetSharedWithMeResponse = zod.array(GetSharedWithMeResponseItem);
 
 /**
+ * @summary List all health consultants
+ */
+export const GetConsultantsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  designation: zod.string(),
+  phone: zod.string(),
+  consultancyFee: zod.number(),
+  medicineFee: zod.number(),
+  createdAt: zod.string(),
+});
+export const GetConsultantsResponse = zod.array(GetConsultantsResponseItem);
+
+/**
+ * @summary Add a consultant (admin only)
+ */
+export const AddConsultantBody = zod.object({
+  name: zod.string(),
+  designation: zod.string(),
+  phone: zod.string(),
+  consultancyFee: zod.number().optional(),
+  medicineFee: zod.number().optional(),
+});
+
+/**
+ * @summary Update a consultant (admin only)
+ */
+export const UpdateConsultantParams = zod.object({
+  consultantId: zod.coerce.number(),
+});
+
+export const UpdateConsultantBody = zod.object({
+  name: zod.string().optional(),
+  designation: zod.string().optional(),
+  phone: zod.string().optional(),
+  consultancyFee: zod.number().optional(),
+  medicineFee: zod.number().optional(),
+});
+
+export const UpdateConsultantResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  designation: zod.string(),
+  phone: zod.string(),
+  consultancyFee: zod.number(),
+  medicineFee: zod.number(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete a consultant (admin only)
+ */
+export const DeleteConsultantParams = zod.object({
+  consultantId: zod.coerce.number(),
+});
+
+export const DeleteConsultantResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
  * @summary Get wellness tips for current cycle phase
  */
 export const GetWellnessTipsQueryParams = zod.object({

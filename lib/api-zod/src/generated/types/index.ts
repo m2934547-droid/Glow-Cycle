@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./addConsultantBody";
 export * from "./addPartnerBody";
 export * from "./addToCartBody";
 export * from "./adminStats";
@@ -15,6 +16,7 @@ export * from "./calendarNote";
 export * from "./cart";
 export * from "./cartItem";
 export * from "./checkoutResponse";
+export * from "./consultant";
 export * from "./createCalendarNoteBody";
 export * from "./createCycleBody";
 export * from "./createProductBody";
@@ -32,6 +34,7 @@ export * from "./product";
 export * from "./quote";
 export * from "./sharedCycleNotification";
 export * from "./signupBody";
+export * from "./updateConsultantBody";
 export * from "./updateProfileBody";
 export * from "./user";
 export * from "./wellnessTips";

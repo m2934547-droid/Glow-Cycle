@@ -184,6 +184,32 @@ export interface AddPartnerBody {
   relationship?: string;
 }
 
+export interface Consultant {
+  id: number;
+  name: string;
+  designation: string;
+  phone: string;
+  consultancyFee: number;
+  medicineFee: number;
+  createdAt: string;
+}
+
+export interface AddConsultantBody {
+  name: string;
+  designation: string;
+  phone: string;
+  consultancyFee?: number;
+  medicineFee?: number;
+}
+
+export interface UpdateConsultantBody {
+  name?: string;
+  designation?: string;
+  phone?: string;
+  consultancyFee?: number;
+  medicineFee?: number;
+}
+
 export interface SharedCycleNotification {
   ownerName: string;
   ownerEmail: string;

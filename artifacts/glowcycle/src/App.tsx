@@ -18,6 +18,8 @@ import Cart from "@/pages/cart";
 import Profile from "@/pages/profile";
 import AdminUsers from "@/pages/admin-users";
 import AdminProducts from "@/pages/admin-products";
+import AdminConsultants from "@/pages/admin-consultants";
+import Consultants from "@/pages/consultants";
 import { Redirect } from "wouter";
 import NotFound from "@/pages/not-found";
 import { Chatbot } from "@/components/chatbot";
@@ -61,6 +63,9 @@ function Router() {
         <Route path="/profile">
           <ProtectedRoute><Profile /></ProtectedRoute>
         </Route>
+        <Route path="/consultants">
+          <ProtectedRoute><Consultants /></ProtectedRoute>
+        </Route>
         
         {/* Admin Routes */}
         <Route path="/admin">
@@ -71,6 +76,9 @@ function Router() {
         </Route>
         <Route path="/admin/products">
           <ProtectedRoute requireAdmin><AdminProducts /></ProtectedRoute>
+        </Route>
+        <Route path="/admin/consultants">
+          <ProtectedRoute requireAdmin><AdminConsultants /></ProtectedRoute>
         </Route>
         
         <Route component={NotFound} />

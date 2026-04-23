@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useGetMe, useLogout, useGetCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package } from "lucide-react";
+import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -26,6 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/tracker", label: "Tracker", icon: Droplet },
     { href: "/calendar", label: "Calendar", icon: CalendarIcon },
     { href: "/wellness", label: "Wellness", icon: HeartPulse },
+    { href: "/consultants", label: "Consultants", icon: Stethoscope },
     { href: "/store", label: "Store", icon: ShoppingBag },
     { href: "/profile", label: "Profile", icon: User },
   ];
@@ -34,6 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/users", label: "Users", icon: UsersIcon },
     { href: "/admin/products", label: "Products", icon: Package },
+    { href: "/admin/consultants", label: "Consultants", icon: Stethoscope },
   ];
 
   const navItems = user?.isAdmin ? adminNavItems : userNavItems;
@@ -150,12 +152,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
                   { href: "/admin/users", icon: UsersIcon, label: "Users" },
                   { href: "/admin/products", icon: Package, label: "Products" },
+                  { href: "/admin/consultants", icon: Stethoscope, label: "Doctors" },
                 ]
               : [
                   { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
                   { href: "/tracker", icon: Droplet, label: "Tracker" },
                   { href: "/calendar", icon: CalendarIcon, label: "Calendar" },
-                  { href: "/wellness", icon: HeartPulse, label: "Wellness" },
+                  { href: "/consultants", icon: Stethoscope, label: "Doctors" },
                   { href: "/store", icon: ShoppingBag, label: "Store" },
                   { href: "/profile", icon: User, label: "Profile" },
                 ]

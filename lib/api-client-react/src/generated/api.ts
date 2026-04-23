@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AddConsultantBody,
   AddPartnerBody,
   AddToCartBody,
   AdminStats,
@@ -25,6 +26,7 @@ import type {
   CalendarNote,
   Cart,
   CheckoutResponse,
+  Consultant,
   CreateCalendarNoteBody,
   CreateCycleBody,
   CreateProductBody,
@@ -41,6 +43,7 @@ import type {
   Quote,
   SharedCycleNotification,
   SignupBody,
+  UpdateConsultantBody,
   UpdateProfileBody,
   User,
   WellnessTips,
@@ -2388,6 +2391,338 @@ export function useGetSharedWithMe<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary List all health consultants
+ */
+export const getGetConsultantsUrl = () => {
+  return `/api/consultants`;
+};
+
+export const getConsultants = async (
+  options?: RequestInit,
+): Promise<Consultant[]> => {
+  return customFetch<Consultant[]>(getGetConsultantsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetConsultantsQueryKey = () => {
+  return [`/api/consultants`] as const;
+};
+
+export const getGetConsultantsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getConsultants>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getConsultants>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetConsultantsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getConsultants>>> = ({
+    signal,
+  }) => getConsultants({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getConsultants>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetConsultantsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getConsultants>>
+>;
+export type GetConsultantsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all health consultants
+ */
+
+export function useGetConsultants<
+  TData = Awaited<ReturnType<typeof getConsultants>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getConsultants>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetConsultantsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a consultant (admin only)
+ */
+export const getAddConsultantUrl = () => {
+  return `/api/consultants`;
+};
+
+export const addConsultant = async (
+  addConsultantBody: AddConsultantBody,
+  options?: RequestInit,
+): Promise<Consultant> => {
+  return customFetch<Consultant>(getAddConsultantUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addConsultantBody),
+  });
+};
+
+export const getAddConsultantMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addConsultant>>,
+    TError,
+    { data: BodyType<AddConsultantBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addConsultant>>,
+  TError,
+  { data: BodyType<AddConsultantBody> },
+  TContext
+> => {
+  const mutationKey = ["addConsultant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addConsultant>>,
+    { data: BodyType<AddConsultantBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return addConsultant(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddConsultantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addConsultant>>
+>;
+export type AddConsultantMutationBody = BodyType<AddConsultantBody>;
+export type AddConsultantMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a consultant (admin only)
+ */
+export const useAddConsultant = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addConsultant>>,
+    TError,
+    { data: BodyType<AddConsultantBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addConsultant>>,
+  TError,
+  { data: BodyType<AddConsultantBody> },
+  TContext
+> => {
+  return useMutation(getAddConsultantMutationOptions(options));
+};
+
+/**
+ * @summary Update a consultant (admin only)
+ */
+export const getUpdateConsultantUrl = (consultantId: number) => {
+  return `/api/consultants/${consultantId}`;
+};
+
+export const updateConsultant = async (
+  consultantId: number,
+  updateConsultantBody: UpdateConsultantBody,
+  options?: RequestInit,
+): Promise<Consultant> => {
+  return customFetch<Consultant>(getUpdateConsultantUrl(consultantId), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateConsultantBody),
+  });
+};
+
+export const getUpdateConsultantMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateConsultant>>,
+    TError,
+    { consultantId: number; data: BodyType<UpdateConsultantBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateConsultant>>,
+  TError,
+  { consultantId: number; data: BodyType<UpdateConsultantBody> },
+  TContext
+> => {
+  const mutationKey = ["updateConsultant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateConsultant>>,
+    { consultantId: number; data: BodyType<UpdateConsultantBody> }
+  > = (props) => {
+    const { consultantId, data } = props ?? {};
+
+    return updateConsultant(consultantId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateConsultantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateConsultant>>
+>;
+export type UpdateConsultantMutationBody = BodyType<UpdateConsultantBody>;
+export type UpdateConsultantMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a consultant (admin only)
+ */
+export const useUpdateConsultant = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateConsultant>>,
+    TError,
+    { consultantId: number; data: BodyType<UpdateConsultantBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateConsultant>>,
+  TError,
+  { consultantId: number; data: BodyType<UpdateConsultantBody> },
+  TContext
+> => {
+  return useMutation(getUpdateConsultantMutationOptions(options));
+};
+
+/**
+ * @summary Delete a consultant (admin only)
+ */
+export const getDeleteConsultantUrl = (consultantId: number) => {
+  return `/api/consultants/${consultantId}`;
+};
+
+export const deleteConsultant = async (
+  consultantId: number,
+  options?: RequestInit,
+): Promise<MessageResponse> => {
+  return customFetch<MessageResponse>(getDeleteConsultantUrl(consultantId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteConsultantMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteConsultant>>,
+    TError,
+    { consultantId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteConsultant>>,
+  TError,
+  { consultantId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteConsultant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteConsultant>>,
+    { consultantId: number }
+  > = (props) => {
+    const { consultantId } = props ?? {};
+
+    return deleteConsultant(consultantId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteConsultantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteConsultant>>
+>;
+
+export type DeleteConsultantMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a consultant (admin only)
+ */
+export const useDeleteConsultant = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteConsultant>>,
+    TError,
+    { consultantId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteConsultant>>,
+  TError,
+  { consultantId: number },
+  TContext
+> => {
+  return useMutation(getDeleteConsultantMutationOptions(options));
+};
 
 /**
  * @summary Get wellness tips for current cycle phase

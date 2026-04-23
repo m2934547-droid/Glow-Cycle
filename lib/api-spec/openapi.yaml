@@ -26,6 +26,8 @@ tags:
     description: Admin panel operations
   - name: wellness
     description: Health & wellness content
+  - name: consultants
+    description: Health consultants directory
 paths:
   /healthz:
     get:
@@ -527,6 +529,80 @@ paths:
                 items:
                   $ref: "#/components/schemas/SharedCycleNotification"
 
+  /consultants:
+    get:
+      operationId: getConsultants
+      tags: [consultants]
+      summary: List all health consultants
+      responses:
+        "200":
+          description: Consultants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Consultant"
+    post:
+      operationId: addConsultant
+      tags: [consultants]
+      summary: Add a consultant (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddConsultantBody"
+      responses:
+        "201":
+          description: Consultant added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultant"
+
+  /consultants/{consultantId}:
+    put:
+      operationId: updateConsultant
+      tags: [consultants]
+      summary: Update a consultant (admin only)
+      parameters:
+        - name: consultantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConsultantBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consultant"
+    delete:
+      operationId: deleteConsultant
+      tags: [consultants]
+      summary: Delete a consultant (admin only)
+      parameters:
+        - name: consultantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
   /wellness/tips:
     get:
       operationId: getWellnessTips
@@ -902,6 +978,54 @@ components:
         relationship:
           type: string
       required: [partnerName, partnerEmail]
+
+    Consultant:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        designation:
+          type: string
+        phone:
+          type: string
+        consultancyFee:
+          type: number
+        medicineFee:
+          type: number
+        createdAt:
+          type: string
+      required: [id, name, designation, phone, consultancyFee, medicineFee, createdAt]
+
+    AddConsultantBody:
+      type: object
+      properties:
+        name:
+          type: string
+        designation:
+          type: string
+        phone:
+          type: string
+        consultancyFee:
+          type: number
+        medicineFee:
+          type: number
+      required: [name, designation, phone]
+
+    UpdateConsultantBody:
+      type: object
+      properties:
+        name:
+          type: string
+        designation:
+          type: string
+        phone:
+          type: string
+        consultancyFee:
+          type: number
+        medicineFee:
+          type: number
 
     SharedCycleNotification:
       type: object
