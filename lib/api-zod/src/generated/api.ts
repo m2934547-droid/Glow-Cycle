@@ -377,6 +377,53 @@ export const AdminGetStatsResponse = zod.object({
 });
 
 /**
+ * @summary List all partners I've added
+ */
+export const GetPartnersResponseItem = zod.object({
+  id: zod.number(),
+  partnerName: zod.string(),
+  partnerEmail: zod.string(),
+  relationship: zod.string(),
+  createdAt: zod.string(),
+});
+export const GetPartnersResponse = zod.array(GetPartnersResponseItem);
+
+/**
+ * @summary Add a trusted partner
+ */
+export const AddPartnerBody = zod.object({
+  partnerName: zod.string(),
+  partnerEmail: zod.string(),
+  relationship: zod.string().optional(),
+});
+
+/**
+ * @summary Remove a trusted partner
+ */
+export const RemovePartnerParams = zod.object({
+  partnerId: zod.coerce.number(),
+});
+
+export const RemovePartnerResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Get cycle phases shared with me by people who added me as a partner
+ */
+export const GetSharedWithMeResponseItem = zod.object({
+  ownerName: zod.string(),
+  ownerEmail: zod.string(),
+  relationship: zod.string(),
+  currentPhase: zod.string(),
+  cycleDay: zod.number(),
+  daysUntilNextPeriod: zod.number(),
+  nextPeriodDate: zod.string(),
+  message: zod.string(),
+});
+export const GetSharedWithMeResponse = zod.array(GetSharedWithMeResponseItem);
+
+/**
  * @summary Get wellness tips for current cycle phase
  */
 export const GetWellnessTipsQueryParams = zod.object({

@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
+import { PartnersSection } from "@/components/partners-section";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -168,6 +169,10 @@ export default function Profile() {
             </Form>
           </CardContent>
         </Card>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <PartnersSection />
       </motion.div>
     </div>
   );

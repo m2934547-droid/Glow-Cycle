@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Droplet, Heart, Activity, Sparkles, User as UserIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { SharedWithMe } from "@/components/shared-with-me";
 
 export default function Dashboard() {
   const { data: user, isLoading: isUserLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -54,6 +55,8 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-2 text-lg">Here's your wellness overview today.</p>
         </div>
       </motion.div>
+
+      <SharedWithMe />
 
       {/* Quote Section */}
       <motion.div 

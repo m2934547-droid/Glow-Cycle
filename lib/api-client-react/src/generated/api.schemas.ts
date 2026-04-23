@@ -170,6 +170,31 @@ export interface Quote {
   author: string;
 }
 
+export interface Partner {
+  id: number;
+  partnerName: string;
+  partnerEmail: string;
+  relationship: string;
+  createdAt: string;
+}
+
+export interface AddPartnerBody {
+  partnerName: string;
+  partnerEmail: string;
+  relationship?: string;
+}
+
+export interface SharedCycleNotification {
+  ownerName: string;
+  ownerEmail: string;
+  relationship: string;
+  currentPhase: string;
+  cycleDay: number;
+  daysUntilNextPeriod: number;
+  nextPeriodDate: string;
+  message: string;
+}
+
 export type GetProductsParams = {
   category?: string;
 };

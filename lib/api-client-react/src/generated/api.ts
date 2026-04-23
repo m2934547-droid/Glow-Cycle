@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AddPartnerBody,
   AddToCartBody,
   AdminStats,
   AdminUser,
@@ -35,8 +36,10 @@ import type {
   HealthStatus,
   LoginBody,
   MessageResponse,
+  Partner,
   Product,
   Quote,
+  SharedCycleNotification,
   SignupBody,
   UpdateProfileBody,
   User,
@@ -2058,6 +2061,326 @@ export function useAdminGetStats<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAdminGetStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all partners I've added
+ */
+export const getGetPartnersUrl = () => {
+  return `/api/partners`;
+};
+
+export const getPartners = async (
+  options?: RequestInit,
+): Promise<Partner[]> => {
+  return customFetch<Partner[]>(getGetPartnersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPartnersQueryKey = () => {
+  return [`/api/partners`] as const;
+};
+
+export const getGetPartnersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPartners>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPartners>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPartnersQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPartners>>> = ({
+    signal,
+  }) => getPartners({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPartners>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPartnersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPartners>>
+>;
+export type GetPartnersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all partners I've added
+ */
+
+export function useGetPartners<
+  TData = Awaited<ReturnType<typeof getPartners>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPartners>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPartnersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a trusted partner
+ */
+export const getAddPartnerUrl = () => {
+  return `/api/partners`;
+};
+
+export const addPartner = async (
+  addPartnerBody: AddPartnerBody,
+  options?: RequestInit,
+): Promise<Partner> => {
+  return customFetch<Partner>(getAddPartnerUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(addPartnerBody),
+  });
+};
+
+export const getAddPartnerMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addPartner>>,
+    TError,
+    { data: BodyType<AddPartnerBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addPartner>>,
+  TError,
+  { data: BodyType<AddPartnerBody> },
+  TContext
+> => {
+  const mutationKey = ["addPartner"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addPartner>>,
+    { data: BodyType<AddPartnerBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return addPartner(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddPartnerMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addPartner>>
+>;
+export type AddPartnerMutationBody = BodyType<AddPartnerBody>;
+export type AddPartnerMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a trusted partner
+ */
+export const useAddPartner = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addPartner>>,
+    TError,
+    { data: BodyType<AddPartnerBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addPartner>>,
+  TError,
+  { data: BodyType<AddPartnerBody> },
+  TContext
+> => {
+  return useMutation(getAddPartnerMutationOptions(options));
+};
+
+/**
+ * @summary Remove a trusted partner
+ */
+export const getRemovePartnerUrl = (partnerId: number) => {
+  return `/api/partners/${partnerId}`;
+};
+
+export const removePartner = async (
+  partnerId: number,
+  options?: RequestInit,
+): Promise<MessageResponse> => {
+  return customFetch<MessageResponse>(getRemovePartnerUrl(partnerId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getRemovePartnerMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof removePartner>>,
+    TError,
+    { partnerId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof removePartner>>,
+  TError,
+  { partnerId: number },
+  TContext
+> => {
+  const mutationKey = ["removePartner"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof removePartner>>,
+    { partnerId: number }
+  > = (props) => {
+    const { partnerId } = props ?? {};
+
+    return removePartner(partnerId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RemovePartnerMutationResult = NonNullable<
+  Awaited<ReturnType<typeof removePartner>>
+>;
+
+export type RemovePartnerMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove a trusted partner
+ */
+export const useRemovePartner = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof removePartner>>,
+    TError,
+    { partnerId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof removePartner>>,
+  TError,
+  { partnerId: number },
+  TContext
+> => {
+  return useMutation(getRemovePartnerMutationOptions(options));
+};
+
+/**
+ * @summary Get cycle phases shared with me by people who added me as a partner
+ */
+export const getGetSharedWithMeUrl = () => {
+  return `/api/partners/shared-with-me`;
+};
+
+export const getSharedWithMe = async (
+  options?: RequestInit,
+): Promise<SharedCycleNotification[]> => {
+  return customFetch<SharedCycleNotification[]>(getGetSharedWithMeUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSharedWithMeQueryKey = () => {
+  return [`/api/partners/shared-with-me`] as const;
+};
+
+export const getGetSharedWithMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSharedWithMe>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSharedWithMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSharedWithMeQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSharedWithMe>>> = ({
+    signal,
+  }) => getSharedWithMe({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSharedWithMe>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSharedWithMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSharedWithMe>>
+>;
+export type GetSharedWithMeQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get cycle phases shared with me by people who added me as a partner
+ */
+
+export function useGetSharedWithMe<
+  TData = Awaited<ReturnType<typeof getSharedWithMe>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSharedWithMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSharedWithMeQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

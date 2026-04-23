@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./addPartnerBody";
 export * from "./addToCartBody";
 export * from "./adminStats";
 export * from "./adminUser";
@@ -26,8 +27,10 @@ export * from "./getWellnessTipsPhase";
 export * from "./healthStatus";
 export * from "./loginBody";
 export * from "./messageResponse";
+export * from "./partner";
 export * from "./product";
 export * from "./quote";
+export * from "./sharedCycleNotification";
 export * from "./signupBody";
 export * from "./updateProfileBody";
 export * from "./user";

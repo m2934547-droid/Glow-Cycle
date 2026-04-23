@@ -461,6 +461,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminStats"
 
+  /partners:
+    get:
+      operationId: getPartners
+      tags: [partners]
+      summary: List all partners I've added
+      responses:
+        "200":
+          description: My partners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Partner"
+    post:
+      operationId: addPartner
+      tags: [partners]
+      summary: Add a trusted partner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddPartnerBody"
+      responses:
+        "201":
+          description: Partner added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Partner"
+
+  /partners/{partnerId}:
+    delete:
+      operationId: removePartner
+      tags: [partners]
+      summary: Remove a trusted partner
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /partners/shared-with-me:
+    get:
+      operationId: getSharedWithMe
+      tags: [partners]
+      summary: Get cycle phases shared with me by people who added me as a partner
+      responses:
+        "200":
+          description: Cycle notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedCycleNotification"
+
   /wellness/tips:
     get:
       operationId: getWellnessTips
@@ -810,3 +876,50 @@ components:
         author:
           type: string
       required: [text, author]
+
+    Partner:
+      type: object
+      properties:
+        id:
+          type: integer
+        partnerName:
+          type: string
+        partnerEmail:
+          type: string
+        relationship:
+          type: string
+        createdAt:
+          type: string
+      required: [id, partnerName, partnerEmail, relationship, createdAt]
+
+    AddPartnerBody:
+      type: object
+      properties:
+        partnerName:
+          type: string
+        partnerEmail:
+          type: string
+        relationship:
+          type: string
+      required: [partnerName, partnerEmail]
+
+    SharedCycleNotification:
+      type: object
+      properties:
+        ownerName:
+          type: string
+        ownerEmail:
+          type: string
+        relationship:
+          type: string
+        currentPhase:
+          type: string
+        cycleDay:
+          type: integer
+        daysUntilNextPeriod:
+          type: integer
+        nextPeriodDate:
+          type: string
+        message:
+          type: string
+      required: [ownerName, ownerEmail, relationship, currentPhase, cycleDay, daysUntilNextPeriod, nextPeriodDate, message]
