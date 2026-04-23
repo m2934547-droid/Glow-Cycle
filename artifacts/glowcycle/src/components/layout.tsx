@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useGetMe, useLogout, useGetCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -31,7 +31,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   if (user?.isAdmin) {
-    navItems.push({ href: "/admin", label: "Admin", icon: Settings });
+    navItems.push({ href: "/admin/users", label: "Users", icon: UsersIcon });
+    navItems.push({ href: "/admin/products", label: "Products", icon: Package });
   }
 
   const cartItemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;

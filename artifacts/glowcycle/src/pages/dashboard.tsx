@@ -5,6 +5,7 @@ import { Droplet, Heart, Activity, Sparkles, User as UserIcon } from "lucide-rea
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SharedWithMe } from "@/components/shared-with-me";
+import { AdminStats } from "@/components/admin-stats";
 
 export default function Dashboard() {
   const { data: user, isLoading: isUserLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -62,6 +63,8 @@ export default function Dashboard() {
       </motion.div>
 
       <SharedWithMe />
+
+      {user?.isAdmin && <AdminStats />}
 
       {/* Quote Section */}
       <motion.div 

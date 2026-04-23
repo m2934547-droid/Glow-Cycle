@@ -16,7 +16,9 @@ import Wellness from "@/pages/wellness";
 import Store from "@/pages/store";
 import Cart from "@/pages/cart";
 import Profile from "@/pages/profile";
-import Admin from "@/pages/admin";
+import AdminUsers from "@/pages/admin-users";
+import AdminProducts from "@/pages/admin-products";
+import { Redirect } from "wouter";
 import NotFound from "@/pages/not-found";
 import { Chatbot } from "@/components/chatbot";
 
@@ -60,9 +62,15 @@ function Router() {
           <ProtectedRoute><Profile /></ProtectedRoute>
         </Route>
         
-        {/* Admin Route */}
+        {/* Admin Routes */}
         <Route path="/admin">
-          <ProtectedRoute requireAdmin><Admin /></ProtectedRoute>
+          <Redirect to="/dashboard" />
+        </Route>
+        <Route path="/admin/users">
+          <ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>
+        </Route>
+        <Route path="/admin/products">
+          <ProtectedRoute requireAdmin><AdminProducts /></ProtectedRoute>
         </Route>
         
         <Route component={NotFound} />
