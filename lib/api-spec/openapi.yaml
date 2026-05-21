@@ -1173,7 +1173,8 @@ components:
       properties:
         email:
           type: string
-      required: [email]
+        phone:
+          type: string
 
     ForgotPasswordResponse:
       type: object
@@ -1189,11 +1190,13 @@ components:
       properties:
         email:
           type: string
+        phone:
+          type: string
         otp:
           type: string
         newPassword:
           type: string
-      required: [email, otp, newPassword]
+      required: [otp, newPassword]
 
     Consultant:
       type: object

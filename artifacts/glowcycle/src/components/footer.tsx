@@ -1,6 +1,13 @@
 import { Link } from "wouter";
-import { Droplet, Heart } from "lucide-react";
+import { Droplet, Heart, Facebook, Instagram, Linkedin, Github } from "lucide-react";
 import { useGetMe } from "@workspace/api-client-react";
+
+const socialLinks = [
+  { icon: Facebook, label: "Facebook", href: "#" },
+  { icon: Instagram, label: "Instagram", href: "#" },
+  { icon: Linkedin, label: "LinkedIn", href: "#" },
+  { icon: Github, label: "GitHub", href: "#" },
+];
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -16,14 +23,31 @@ export function Footer() {
               <Droplet className="h-5 w-5 text-rose-200" />
               <span className="font-serif font-bold text-lg text-white">GlowCycle</span>
             </div>
-            <p className="text-sm text-rose-200/80 leading-relaxed">
+            <p className="text-sm text-rose-200/80 leading-relaxed mb-5">
               Your gentle cycle companion. Track, learn, and thrive at every phase of your journey.
             </p>
+            {/* Social icons */}
+            <div className="flex items-center gap-3">
+              {socialLinks.map(({ icon: Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9 w-9 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+                  style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.25)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.12)")}
+                >
+                  <Icon className="h-4 w-4 text-white" />
+                </a>
+              ))}
+            </div>
           </div>
 
           {user ? (
             <>
-              {/* Logged-in: Features column */}
               <div>
                 <h3 className="font-semibold text-xs text-rose-300 mb-3 uppercase tracking-wider">Features</h3>
                 <ul className="space-y-2">
@@ -41,8 +65,6 @@ export function Footer() {
                   ))}
                 </ul>
               </div>
-
-              {/* Logged-in: Account column */}
               <div>
                 <h3 className="font-semibold text-xs text-rose-300 mb-3 uppercase tracking-wider">Account</h3>
                 <ul className="space-y-2">
@@ -62,7 +84,6 @@ export function Footer() {
             </>
           ) : (
             <>
-              {/* Guest: Quick links */}
               <div>
                 <h3 className="font-semibold text-xs text-rose-300 mb-3 uppercase tracking-wider">Navigate</h3>
                 <ul className="space-y-2">
@@ -79,8 +100,6 @@ export function Footer() {
                   ))}
                 </ul>
               </div>
-
-              {/* Guest: What's inside */}
               <div>
                 <h3 className="font-semibold text-xs text-rose-300 mb-3 uppercase tracking-wider">What's Inside</h3>
                 <ul className="space-y-2">

@@ -11,6 +11,7 @@ export const usersTable = pgTable("users", {
   heightCm: real("height_cm").notNull(),
   weightKg: real("weight_kg").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
+  phoneNumber: text("phone_number"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

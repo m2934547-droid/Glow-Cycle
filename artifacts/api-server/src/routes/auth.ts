@@ -117,20 +117,46 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
     return;
   }
 
-  const { email } = parsed.data;
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase().trim()));
+  const { email, phone } = parsed.data;
+
+  if (!email && !phone) {
+    res.status(400).json({ error: "Provide an email address or phone number." });
+    return;
+  }
+
+  let user = null;
+  let identifier = "";
+  let identifierType: "email" | "phone" = "email";
+
+  if (email) {
+    identifier = email.toLowerCase().trim();
+    identifierType = "email";
+    const rows = await db.select().from(usersTable).where(eq(usersTable.email, identifier));
+    user = rows[0] ?? null;
+  } else if (phone) {
+    identifier = phone.trim();
+    identifierType = "phone";
+    const rows = await db.select().from(usersTable).where(eq(usersTable.phoneNumber, identifier));
+    user = rows[0] ?? null;
+  }
 
   if (!user) {
-    res.json({ message: "If that email is registered, an OTP has been sent.", otp: "" });
+    const via = identifierType === "phone" ? "phone number" : "email";
+    res.json({ message: `If that ${via} is registered, an OTP has been sent.`, otp: "" });
     return;
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-  await db.insert(passwordResetOtpsTable).values({ email: email.toLowerCase().trim(), otp, expiresAt });
+  if (identifierType === "email") {
+    await db.insert(passwordResetOtpsTable).values({ email: identifier, otp, expiresAt });
+  } else {
+    await db.insert(passwordResetOtpsTable).values({ phone: identifier, otp, expiresAt });
+  }
 
-  res.json({ message: "OTP sent to your email address.", otp });
+  const via = identifierType === "phone" ? "phone number" : "email address";
+  res.json({ message: `OTP sent to your ${via}.`, otp });
 });
 
 router.post("/auth/reset-password", async (req, res): Promise<void> => {
@@ -140,16 +166,46 @@ router.post("/auth/reset-password", async (req, res): Promise<void> => {
     return;
   }
 
-  const { email, otp, newPassword } = parsed.data;
+  const { email, phone, otp, newPassword } = parsed.data;
   const now = new Date();
 
-  const [record] = await db
-    .select()
-    .from(passwordResetOtpsTable)
-    .where(eq(passwordResetOtpsTable.email, email.toLowerCase().trim()));
+  if (!email && !phone) {
+    res.status(400).json({ error: "Provide an email address or phone number." });
+    return;
+  }
+
+  let record = null;
+  let user = null;
+
+  if (email) {
+    const rows = await db
+      .select()
+      .from(passwordResetOtpsTable)
+      .where(eq(passwordResetOtpsTable.email, email.toLowerCase().trim()));
+    record = rows[0] ?? null;
+    if (record && !record.used && record.otp === otp && record.expiresAt >= now) {
+      const userRows = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase().trim()));
+      user = userRows[0] ?? null;
+    }
+  } else if (phone) {
+    const rows = await db
+      .select()
+      .from(passwordResetOtpsTable)
+      .where(eq(passwordResetOtpsTable.phone, phone.trim()));
+    record = rows[0] ?? null;
+    if (record && !record.used && record.otp === otp && record.expiresAt >= now) {
+      const userRows = await db.select().from(usersTable).where(eq(usersTable.phoneNumber, phone.trim()));
+      user = userRows[0] ?? null;
+    }
+  }
 
   if (!record || record.used || record.otp !== otp || record.expiresAt < now) {
     res.status(400).json({ error: "Invalid or expired OTP. Please request a new one." });
+    return;
+  }
+
+  if (!user) {
+    res.status(400).json({ error: "User not found." });
     return;
   }
 
@@ -157,12 +213,6 @@ router.post("/auth/reset-password", async (req, res): Promise<void> => {
     .update(passwordResetOtpsTable)
     .set({ used: true })
     .where(eq(passwordResetOtpsTable.id, record.id));
-
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase().trim()));
-  if (!user) {
-    res.status(400).json({ error: "User not found." });
-    return;
-  }
 
   await db
     .update(usersTable)

@@ -224,7 +224,8 @@ export interface RateProductBody {
 }
 
 export interface ForgotPasswordBody {
-  email: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface ForgotPasswordResponse {
@@ -233,7 +234,8 @@ export interface ForgotPasswordResponse {
 }
 
 export interface ResetPasswordBody {
-  email: string;
+  email?: string;
+  phone?: string;
   otp: string;
   newPassword: string;
 }

@@ -411,7 +411,8 @@ export const GetMyRatingsResponse = zod.array(GetMyRatingsResponseItem);
  * @summary Request password reset OTP
  */
 export const ForgotPasswordBody = zod.object({
-  email: zod.string(),
+  email: zod.string().optional(),
+  phone: zod.string().optional(),
 });
 
 export const ForgotPasswordResponse = zod.object({
@@ -423,7 +424,8 @@ export const ForgotPasswordResponse = zod.object({
  * @summary Reset password with OTP
  */
 export const ResetPasswordBody = zod.object({
-  email: zod.string(),
+  email: zod.string().optional(),
+  phone: zod.string().optional(),
   otp: zod.string(),
   newPassword: zod.string(),
 });

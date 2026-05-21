@@ -8,15 +8,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplet, Mail, KeyRound, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Droplet, Mail, Phone, KeyRound, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const emailSchema = z.object({ email: z.string().email("Enter a valid email") });
+const emailSchema = z.object({ email: z.string().email("Enter a valid email address") });
+const phoneSchema = z.object({ phone: z.string().min(7, "Enter a valid phone number") });
 const resetSchema = z.object({
   otp: z.string().length(6, "OTP must be 6 digits"),
-  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  newPassword: z.string().min(6, "At least 6 characters"),
   confirmPassword: z.string().min(6, "Please confirm your password"),
 }).refine((d) => d.newPassword === d.confirmPassword, {
   message: "Passwords do not match",
@@ -24,11 +25,13 @@ const resetSchema = z.object({
 });
 
 type EmailForm = z.infer<typeof emailSchema>;
+type PhoneForm = z.infer<typeof phoneSchema>;
 type ResetForm = z.infer<typeof resetSchema>;
 
 export default function ForgotPassword() {
-  const [step, setStep] = useState<"email" | "otp">("email");
-  const [email, setEmail] = useState("");
+  const [method, setMethod] = useState<"email" | "phone">("email");
+  const [step, setStep] = useState<"request" | "otp">("request");
+  const [identifier, setIdentifier] = useState<{ value: string; type: "email" | "phone" }>({ value: "", type: "email" });
   const [demoOtp, setDemoOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [, setLocation] = useLocation();
@@ -38,12 +41,19 @@ export default function ForgotPassword() {
   const resetMutation = useResetPassword();
 
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema), defaultValues: { email: "" } });
+  const phoneForm = useForm<PhoneForm>({ resolver: zodResolver(phoneSchema), defaultValues: { phone: "" } });
   const resetForm = useForm<ResetForm>({ resolver: zodResolver(resetSchema), defaultValues: { otp: "", newPassword: "", confirmPassword: "" } });
 
-  const onRequestOtp = async (data: EmailForm) => {
+  const onRequestOtp = async (data: EmailForm | PhoneForm) => {
     try {
-      const result = await forgotMutation.mutateAsync({ data: { email: data.email } });
-      setEmail(data.email);
+      const payload = "email" in data
+        ? { email: data.email }
+        : { phone: (data as PhoneForm).phone };
+      const result = await forgotMutation.mutateAsync({ data: payload });
+      setIdentifier({
+        value: "email" in data ? data.email : (data as PhoneForm).phone,
+        type: "email" in data ? "email" : "phone",
+      });
       setDemoOtp(result.otp);
       setStep("otp");
     } catch (e: any) {
@@ -53,12 +63,21 @@ export default function ForgotPassword() {
 
   const onResetPassword = async (data: ResetForm) => {
     try {
-      await resetMutation.mutateAsync({ data: { email, otp: data.otp, newPassword: data.newPassword } });
+      const payload = identifier.type === "email"
+        ? { email: identifier.value, otp: data.otp, newPassword: data.newPassword }
+        : { phone: identifier.value, otp: data.otp, newPassword: data.newPassword };
+      await resetMutation.mutateAsync({ data: payload });
       toast({ title: "Password reset!", description: "You can now log in with your new password." });
       setLocation("/login");
     } catch (e: any) {
       toast({ title: "Invalid OTP", description: e?.error ?? "The OTP is incorrect or expired.", variant: "destructive" });
     }
+  };
+
+  const goBack = () => {
+    setStep("request");
+    setDemoOtp("");
+    resetForm.reset();
   };
 
   return (
@@ -71,36 +90,88 @@ export default function ForgotPassword() {
         </div>
 
         <AnimatePresence mode="wait">
-          {step === "email" ? (
-            <motion.div key="email" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+          {step === "request" ? (
+            <motion.div key="request" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
               <Card className="rounded-[2rem] border-primary/10 shadow-xl shadow-primary/5">
                 <CardHeader className="text-center pb-2">
-                  <CardTitle className="font-serif text-2xl flex items-center justify-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> Forgot Password
-                  </CardTitle>
-                  <CardDescription>Enter your registered email to receive an OTP.</CardDescription>
+                  <CardTitle className="font-serif text-2xl">Forgot Password?</CardTitle>
+                  <CardDescription>Choose how you'd like to receive your OTP.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Form {...emailForm}>
-                    <form onSubmit={emailForm.handleSubmit(onRequestOtp)} className="space-y-4">
-                      <FormField control={emailForm.control} name="email" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="you@example.com" type="email" className="rounded-xl" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <Button type="submit" className="w-full h-11 rounded-full" disabled={forgotMutation.isPending}>
-                        {forgotMutation.isPending ? "Sending..." : "Send OTP"}
-                      </Button>
-                      <p className="text-center text-sm text-muted-foreground">
-                        Remember your password?{" "}
-                        <Link href="/login" className="text-primary hover:underline font-medium">Log in</Link>
-                      </p>
-                    </form>
-                  </Form>
+                <CardContent className="space-y-5">
+                  {/* Method toggle */}
+                  <div className="flex rounded-2xl overflow-hidden border border-primary/20 bg-muted/30 p-1 gap-1">
+                    {(["email", "phone"] as const).map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setMethod(m)}
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all",
+                          method === m
+                            ? "bg-primary text-white shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {m === "email" ? <Mail className="h-4 w-4" /> : <Phone className="h-4 w-4" />}
+                        {m === "email" ? "Email" : "Phone Number"}
+                      </button>
+                    ))}
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    {method === "email" ? (
+                      <motion.div key="email-form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                        <Form {...emailForm}>
+                          <form onSubmit={emailForm.handleSubmit(onRequestOtp)} className="space-y-4">
+                            <FormField control={emailForm.control} name="email" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Address</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input placeholder="you@example.com" type="email" className="rounded-xl pl-9" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <Button type="submit" className="w-full h-11 rounded-full" disabled={forgotMutation.isPending}>
+                              {forgotMutation.isPending ? "Sending OTP..." : "Send OTP via Email"}
+                            </Button>
+                          </form>
+                        </Form>
+                      </motion.div>
+                    ) : (
+                      <motion.div key="phone-form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                        <Form {...phoneForm}>
+                          <form onSubmit={phoneForm.handleSubmit(onRequestOtp)} className="space-y-4">
+                            <FormField control={phoneForm.control} name="phone" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input placeholder="+91 98765 43210" type="tel" className="rounded-xl pl-9" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <p className="text-xs text-muted-foreground bg-muted/50 rounded-xl px-3 py-2">
+                              Your phone number must match the one registered on your account.
+                            </p>
+                            <Button type="submit" className="w-full h-11 rounded-full" disabled={forgotMutation.isPending}>
+                              {forgotMutation.isPending ? "Sending OTP..." : "Send OTP via SMS"}
+                            </Button>
+                          </form>
+                        </Form>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <p className="text-center text-sm text-muted-foreground pt-1">
+                    Remember your password?{" "}
+                    <Link href="/login" className="text-primary hover:underline font-medium">Log in</Link>
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -111,13 +182,22 @@ export default function ForgotPassword() {
                   <CardTitle className="font-serif text-2xl flex items-center justify-center gap-2">
                     <KeyRound className="h-5 w-5 text-primary" /> Reset Password
                   </CardTitle>
-                  <CardDescription>Enter the OTP sent to <span className="font-medium text-foreground">{email}</span></CardDescription>
+                  <CardDescription>
+                    OTP sent to{" "}
+                    <span className="font-medium text-foreground">
+                      {identifier.type === "phone" ? "📱 " : "✉️ "}{identifier.value}
+                    </span>
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {demoOtp && (
                     <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">Demo Mode</p>
-                      <p className="text-sm text-amber-800">In production this OTP would be emailed. Your OTP is:</p>
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">
+                        Demo Mode — {identifier.type === "phone" ? "SMS" : "Email"} OTP
+                      </p>
+                      <p className="text-sm text-amber-800">
+                        In production this would be {identifier.type === "phone" ? "SMSed" : "emailed"}. Your OTP:
+                      </p>
                       <p className="text-3xl font-mono font-bold text-amber-700 tracking-widest mt-1">{demoOtp}</p>
                     </div>
                   )}
@@ -159,8 +239,8 @@ export default function ForgotPassword() {
                         <ShieldCheck className="h-4 w-4 mr-2" />
                         {resetMutation.isPending ? "Resetting..." : "Reset Password"}
                       </Button>
-                      <Button type="button" variant="ghost" size="sm" className="w-full rounded-full text-muted-foreground" onClick={() => setStep("email")}>
-                        Try a different email
+                      <Button type="button" variant="ghost" size="sm" className="w-full rounded-full text-muted-foreground" onClick={goBack}>
+                        ← Try a different {identifier.type === "phone" ? "number" : "email"}
                       </Button>
                     </form>
                   </Form>
