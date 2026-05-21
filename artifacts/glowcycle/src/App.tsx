@@ -20,6 +20,8 @@ import AdminUsers from "@/pages/admin-users";
 import AdminProducts from "@/pages/admin-products";
 import AdminConsultants from "@/pages/admin-consultants";
 import Consultants from "@/pages/consultants";
+import Orders from "@/pages/orders";
+import ForgotPassword from "@/pages/forgot-password";
 import { Redirect } from "wouter";
 import NotFound from "@/pages/not-found";
 import { Chatbot } from "@/components/chatbot";
@@ -66,6 +68,10 @@ function Router() {
         <Route path="/consultants">
           <ProtectedRoute><Consultants /></ProtectedRoute>
         </Route>
+        <Route path="/orders">
+          <ProtectedRoute><Orders /></ProtectedRoute>
+        </Route>
+        <Route path="/forgot-password" component={ForgotPassword} />
         
         {/* Admin Routes */}
         <Route path="/admin">

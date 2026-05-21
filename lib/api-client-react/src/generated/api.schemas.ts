@@ -184,6 +184,60 @@ export interface AddPartnerBody {
   relationship?: string;
 }
 
+export interface OrderLineItem {
+  productId: number;
+  productName: string;
+  productCategory: string;
+  price: number;
+  quantity: number;
+}
+
+export interface OrderHistoryItem {
+  id: number;
+  orderId: string;
+  total: number;
+  itemCount: number;
+  createdAt: string;
+  items: OrderLineItem[];
+}
+
+export interface ProductRatingItem {
+  id: number;
+  userId: number;
+  productId: number;
+  rating: number;
+  review?: string | null;
+  createdAt: string;
+}
+
+export interface ProductRatingSummary {
+  averageRating: number;
+  totalRatings: number;
+  userRating?: number | null;
+  ratings: ProductRatingItem[];
+}
+
+export interface RateProductBody {
+  productId: number;
+  rating: number;
+  review?: string;
+}
+
+export interface ForgotPasswordBody {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  otp: string;
+}
+
+export interface ResetPasswordBody {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
 export interface Consultant {
   id: number;
   name: string;

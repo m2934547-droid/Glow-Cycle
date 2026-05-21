@@ -342,6 +342,97 @@ export const CheckoutResponse = zod.object({
 });
 
 /**
+ * @summary Get current user's order history
+ */
+export const GetOrdersResponseItem = zod.object({
+  id: zod.number(),
+  orderId: zod.string(),
+  total: zod.number(),
+  itemCount: zod.number(),
+  createdAt: zod.string(),
+  items: zod.array(
+    zod.object({
+      productId: zod.number(),
+      productName: zod.string(),
+      productCategory: zod.string(),
+      price: zod.number(),
+      quantity: zod.number(),
+    }),
+  ),
+});
+export const GetOrdersResponse = zod.array(GetOrdersResponseItem);
+
+/**
+ * @summary Rate a product
+ */
+export const RateProductBody = zod.object({
+  productId: zod.number(),
+  rating: zod.number(),
+  review: zod.string().optional(),
+});
+
+/**
+ * @summary Get ratings for a product
+ */
+export const GetProductRatingsParams = zod.object({
+  productId: zod.coerce.number(),
+});
+
+export const GetProductRatingsResponse = zod.object({
+  averageRating: zod.number(),
+  totalRatings: zod.number(),
+  userRating: zod.number().nullish(),
+  ratings: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.number(),
+      productId: zod.number(),
+      rating: zod.number(),
+      review: zod.string().nullish(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get current user's ratings
+ */
+export const GetMyRatingsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  productId: zod.number(),
+  rating: zod.number(),
+  review: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const GetMyRatingsResponse = zod.array(GetMyRatingsResponseItem);
+
+/**
+ * @summary Request password reset OTP
+ */
+export const ForgotPasswordBody = zod.object({
+  email: zod.string(),
+});
+
+export const ForgotPasswordResponse = zod.object({
+  message: zod.string(),
+  otp: zod.string(),
+});
+
+/**
+ * @summary Reset password with OTP
+ */
+export const ResetPasswordBody = zod.object({
+  email: zod.string(),
+  otp: zod.string(),
+  newPassword: zod.string(),
+});
+
+export const ResetPasswordResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
  * @summary Admin - Get all users
  */
 export const AdminGetUsersResponseItem = zod.object({

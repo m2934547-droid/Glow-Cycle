@@ -28,6 +28,10 @@ tags:
     description: Health & wellness content
   - name: consultants
     description: Health consultants directory
+  - name: orders
+    description: Order history
+  - name: ratings
+    description: Product ratings and reviews
 paths:
   /healthz:
     get:
@@ -415,6 +419,112 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CheckoutResponse"
+
+  /orders:
+    get:
+      operationId: getOrders
+      tags: [orders]
+      summary: Get current user's order history
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderHistoryItem"
+
+  /ratings:
+    post:
+      operationId: rateProduct
+      tags: [ratings]
+      summary: Rate a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RateProductBody"
+      responses:
+        "201":
+          description: Rating saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductRatingItem"
+
+  /ratings/product/{productId}:
+    get:
+      operationId: getProductRatings
+      tags: [ratings]
+      summary: Get ratings for a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ratings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductRatingSummary"
+
+  /ratings/my:
+    get:
+      operationId: getMyRatings
+      tags: [ratings]
+      summary: Get current user's ratings
+      responses:
+        "200":
+          description: My ratings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductRatingItem"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordBody"
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForgotPasswordResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordBody"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
 
   /admin/users:
     get:
@@ -978,6 +1088,112 @@ components:
         relationship:
           type: string
       required: [partnerName, partnerEmail]
+
+    OrderLineItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        productName:
+          type: string
+        productCategory:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+      required: [productId, productName, productCategory, price, quantity]
+
+    OrderHistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: string
+        total:
+          type: number
+        itemCount:
+          type: integer
+        createdAt:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderLineItem"
+      required: [id, orderId, total, itemCount, createdAt, items]
+
+    ProductRatingItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        productId:
+          type: integer
+        rating:
+          type: integer
+        review:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, userId, productId, rating, createdAt]
+
+    ProductRatingSummary:
+      type: object
+      properties:
+        averageRating:
+          type: number
+        totalRatings:
+          type: integer
+        userRating:
+          type: integer
+          nullable: true
+        ratings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductRatingItem"
+      required: [averageRating, totalRatings, ratings]
+
+    RateProductBody:
+      type: object
+      properties:
+        productId:
+          type: integer
+        rating:
+          type: integer
+        review:
+          type: string
+      required: [productId, rating]
+
+    ForgotPasswordBody:
+      type: object
+      properties:
+        email:
+          type: string
+      required: [email]
+
+    ForgotPasswordResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        otp:
+          type: string
+      required: [message, otp]
+
+    ResetPasswordBody:
+      type: object
+      properties:
+        email:
+          type: string
+        otp:
+          type: string
+        newPassword:
+          type: string
+      required: [email, otp, newPassword]
 
     Consultant:
       type: object

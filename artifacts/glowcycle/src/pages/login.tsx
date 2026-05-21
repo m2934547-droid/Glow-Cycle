@@ -98,9 +98,14 @@ export default function Login() {
                     </FormItem>
                   )}
                 />
+                <div className="flex justify-end -mt-2">
+                  <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
                 <Button 
                   type="submit" 
-                  className="w-full h-12 rounded-xl text-lg font-medium shadow-lg shadow-primary/20 hover-elevate mt-4" 
+                  className="w-full h-12 rounded-xl text-lg font-medium shadow-lg shadow-primary/20 hover-elevate mt-2" 
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? "Logging in..." : "Log in"}

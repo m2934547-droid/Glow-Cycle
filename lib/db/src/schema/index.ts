@@ -6,3 +6,6 @@ export * from "./cartItems";
 export * from "./orders";
 export * from "./partners";
 export * from "./consultants";
+export * from "./orderItems";
+export * from "./productRatings";
+export * from "./passwordResetOtps";

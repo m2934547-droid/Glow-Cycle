@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
-import { db, usersTable } from "@workspace/db";
-import { SignupBody, LoginBody } from "@workspace/api-zod";
+import { eq, lt } from "drizzle-orm";
+import { db, usersTable, passwordResetOtpsTable } from "@workspace/db";
+import { SignupBody, LoginBody, ForgotPasswordBody, ResetPasswordBody } from "@workspace/api-zod";
 import { createHash } from "crypto";
 
 const router: IRouter = Router();
@@ -108,6 +108,68 @@ router.get("/auth/me", async (req, res): Promise<void> => {
   }
 
   res.json(formatUser(user));
+});
+
+router.post("/auth/forgot-password", async (req, res): Promise<void> => {
+  const parsed = ForgotPasswordBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const { email } = parsed.data;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase().trim()));
+
+  if (!user) {
+    res.json({ message: "If that email is registered, an OTP has been sent.", otp: "" });
+    return;
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+  await db.insert(passwordResetOtpsTable).values({ email: email.toLowerCase().trim(), otp, expiresAt });
+
+  res.json({ message: "OTP sent to your email address.", otp });
+});
+
+router.post("/auth/reset-password", async (req, res): Promise<void> => {
+  const parsed = ResetPasswordBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const { email, otp, newPassword } = parsed.data;
+  const now = new Date();
+
+  const [record] = await db
+    .select()
+    .from(passwordResetOtpsTable)
+    .where(eq(passwordResetOtpsTable.email, email.toLowerCase().trim()));
+
+  if (!record || record.used || record.otp !== otp || record.expiresAt < now) {
+    res.status(400).json({ error: "Invalid or expired OTP. Please request a new one." });
+    return;
+  }
+
+  await db
+    .update(passwordResetOtpsTable)
+    .set({ used: true })
+    .where(eq(passwordResetOtpsTable.id, record.id));
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase().trim()));
+  if (!user) {
+    res.status(400).json({ error: "User not found." });
+    return;
+  }
+
+  await db
+    .update(usersTable)
+    .set({ passwordHash: hashPassword(newPassword) })
+    .where(eq(usersTable.id, user.id));
+
+  res.json({ message: "Password reset successfully. You can now log in." });
 });
 
 export { formatUser, computeBmi, getBmiCategory };

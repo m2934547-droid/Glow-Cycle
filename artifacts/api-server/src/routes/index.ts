@@ -10,6 +10,8 @@ import adminRouter from "./admin";
 import wellnessRouter from "./wellness";
 import partnersRouter from "./partners";
 import consultantsRouter from "./consultants";
+import ordersRouter from "./orders";
+import ratingsRouter from "./ratings";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(adminRouter);
 router.use(wellnessRouter);
 router.use(partnersRouter);
 router.use(consultantsRouter);
+router.use(ordersRouter);
+router.use(ratingsRouter);
 
 export default router;
