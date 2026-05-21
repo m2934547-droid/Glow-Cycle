@@ -1,12 +1,12 @@
 import { Link } from "wouter";
-import { Droplet, Heart, Facebook, Instagram, Linkedin, Github } from "lucide-react";
+import { Droplet, Heart, Facebook, Instagram, Linkedin, Github, Mail, Phone } from "lucide-react";
 import { useGetMe } from "@workspace/api-client-react";
 
 const socialLinks = [
-  { icon: Facebook, label: "Facebook", href: "#" },
+  { icon: Facebook,  label: "Facebook",  href: "#" },
   { icon: Instagram, label: "Instagram", href: "#" },
-  { icon: Linkedin, label: "LinkedIn", href: "#" },
-  { icon: Github, label: "GitHub", href: "#" },
+  { icon: Linkedin,  label: "LinkedIn",  href: "#" },
+  { icon: Github,    label: "GitHub",    href: "#" },
 ];
 
 export function Footer() {
@@ -16,9 +16,10 @@ export function Footer() {
   return (
     <footer className="border-t mt-auto" style={{ background: "linear-gradient(135deg, #2d0010 0%, #800020 60%, #a0003a 100%)" }}>
       <div className="container mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
-          {/* Brand */}
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 mb-8">
+
+          {/* Brand + social */}
+          <div className="sm:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <Droplet className="h-5 w-5 text-rose-200" />
               <span className="font-serif font-bold text-lg text-white">GlowCycle</span>
@@ -26,7 +27,6 @@ export function Footer() {
             <p className="text-sm text-rose-200/80 leading-relaxed mb-5">
               Your gentle cycle companion. Track, learn, and thrive at every phase of your journey.
             </p>
-            {/* Social icons */}
             <div className="flex items-center gap-3">
               {socialLinks.map(({ icon: Icon, label, href }) => (
                 <a
@@ -46,6 +46,7 @@ export function Footer() {
             </div>
           </div>
 
+          {/* Dynamic nav columns */}
           {user ? (
             <>
               <div>
@@ -53,9 +54,9 @@ export function Footer() {
                 <ul className="space-y-2">
                   {[
                     { label: "Cycle Tracker", href: "/tracker" },
-                    { label: "Calendar", href: "/calendar" },
+                    { label: "Calendar",      href: "/calendar" },
                     { label: "Wellness Tips", href: "/wellness" },
-                    { label: "Consultants", href: "/consultants" },
+                    { label: "Consultants",   href: "/consultants" },
                   ].map((item) => (
                     <li key={item.href}>
                       <Link href={item.href} className="text-sm text-rose-200 hover:text-white transition-colors">
@@ -69,9 +70,9 @@ export function Footer() {
                 <h3 className="font-semibold text-xs text-rose-300 mb-3 uppercase tracking-wider">Account</h3>
                 <ul className="space-y-2">
                   {[
-                    { label: "Store", href: "/store" },
+                    { label: "Store",         href: "/store" },
                     { label: "Order History", href: "/orders" },
-                    { label: "Profile", href: "/profile" },
+                    { label: "Profile",       href: "/profile" },
                   ].map((item) => (
                     <li key={item.href}>
                       <Link href={item.href} className="text-sm text-rose-200 hover:text-white transition-colors">
@@ -88,8 +89,8 @@ export function Footer() {
                 <h3 className="font-semibold text-xs text-rose-300 mb-3 uppercase tracking-wider">Navigate</h3>
                 <ul className="space-y-2">
                   {[
-                    { label: "Home", href: "/" },
-                    { label: "Log In", href: "/login" },
+                    { label: "Home",    href: "/" },
+                    { label: "Log In",  href: "/login" },
                     { label: "Sign Up", href: "/signup" },
                   ].map((item) => (
                     <li key={item.href}>
@@ -112,6 +113,38 @@ export function Footer() {
               </div>
             </>
           )}
+
+          {/* Contact Us */}
+          <div>
+            <h3 className="font-semibold text-xs text-rose-300 mb-3 uppercase tracking-wider">Contact Us</h3>
+            <ul className="space-y-3">
+              <li>
+                <a
+                  href="mailto:support@glowcycle.com"
+                  className="flex items-start gap-2.5 text-sm text-rose-200 hover:text-white transition-colors group"
+                >
+                  <span className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-colors"
+                    style={{ background: "rgba(255,255,255,0.12)" }}>
+                    <Mail className="h-3.5 w-3.5 text-rose-200 group-hover:text-white" />
+                  </span>
+                  <span className="leading-relaxed">support@glowcycle.com</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="tel:+918800123456"
+                  className="flex items-start gap-2.5 text-sm text-rose-200 hover:text-white transition-colors group"
+                >
+                  <span className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-colors"
+                    style={{ background: "rgba(255,255,255,0.12)" }}>
+                    <Phone className="h-3.5 w-3.5 text-rose-200 group-hover:text-white" />
+                  </span>
+                  <span className="leading-relaxed">+91 88001 23456</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
         </div>
 
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">

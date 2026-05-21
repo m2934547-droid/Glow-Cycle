@@ -8,13 +8,36 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplet, Mail, Phone, KeyRound, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Droplet, Mail, Phone, KeyRound, ShieldCheck, Eye, EyeOff, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+const COUNTRIES = [
+  { code: "+91",  flag: "🇮🇳", name: "India" },
+  { code: "+1",   flag: "🇺🇸", name: "United States" },
+  { code: "+1",   flag: "🇨🇦", name: "Canada" },
+  { code: "+44",  flag: "🇬🇧", name: "United Kingdom" },
+  { code: "+61",  flag: "🇦🇺", name: "Australia" },
+  { code: "+971", flag: "🇦🇪", name: "UAE" },
+  { code: "+65",  flag: "🇸🇬", name: "Singapore" },
+  { code: "+60",  flag: "🇲🇾", name: "Malaysia" },
+  { code: "+92",  flag: "🇵🇰", name: "Pakistan" },
+  { code: "+880", flag: "🇧🇩", name: "Bangladesh" },
+  { code: "+94",  flag: "🇱🇰", name: "Sri Lanka" },
+  { code: "+977", flag: "🇳🇵", name: "Nepal" },
+  { code: "+49",  flag: "🇩🇪", name: "Germany" },
+  { code: "+33",  flag: "🇫🇷", name: "France" },
+  { code: "+39",  flag: "🇮🇹", name: "Italy" },
+  { code: "+81",  flag: "🇯🇵", name: "Japan" },
+  { code: "+82",  flag: "🇰🇷", name: "South Korea" },
+  { code: "+86",  flag: "🇨🇳", name: "China" },
+  { code: "+55",  flag: "🇧🇷", name: "Brazil" },
+  { code: "+27",  flag: "🇿🇦", name: "South Africa" },
+];
+
 const emailSchema = z.object({ email: z.string().email("Enter a valid email address") });
-const phoneSchema = z.object({ phone: z.string().min(7, "Enter a valid phone number") });
+const phoneSchema = z.object({ number: z.string().min(6, "Enter a valid phone number") });
 const resetSchema = z.object({
   otp: z.string().length(6, "OTP must be 6 digits"),
   newPassword: z.string().min(6, "At least 6 characters"),
@@ -28,9 +51,34 @@ type EmailForm = z.infer<typeof emailSchema>;
 type PhoneForm = z.infer<typeof phoneSchema>;
 type ResetForm = z.infer<typeof resetSchema>;
 
+function CountryCodeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const selected = COUNTRIES.find((c) => c.code === value && c.name === "India") ?? COUNTRIES.find((c) => c.code === value) ?? COUNTRIES[0];
+  return (
+    <div className="relative">
+      <select
+        value={`${selected.flag}${value}|${selected.name}`}
+        onChange={(e) => {
+          const code = e.target.value.split("|")[0].replace(/\p{Emoji}/gu, "").trim();
+          onChange(code);
+        }}
+        className="h-full w-full rounded-l-xl border-0 bg-muted/60 pl-3 pr-8 text-sm font-medium text-foreground appearance-none focus:outline-none focus:ring-0 cursor-pointer"
+        style={{ minWidth: "90px" }}
+      >
+        {COUNTRIES.map((c) => (
+          <option key={`${c.name}-${c.code}`} value={`${c.flag}${c.code}|${c.name}`}>
+            {c.flag} {c.code}  {c.name}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+    </div>
+  );
+}
+
 export default function ForgotPassword() {
   const [method, setMethod] = useState<"email" | "phone">("email");
   const [step, setStep] = useState<"request" | "otp">("request");
+  const [countryCode, setCountryCode] = useState("+91");
   const [identifier, setIdentifier] = useState<{ value: string; type: "email" | "phone" }>({ value: "", type: "email" });
   const [demoOtp, setDemoOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -41,19 +89,26 @@ export default function ForgotPassword() {
   const resetMutation = useResetPassword();
 
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema), defaultValues: { email: "" } });
-  const phoneForm = useForm<PhoneForm>({ resolver: zodResolver(phoneSchema), defaultValues: { phone: "" } });
+  const phoneForm = useForm<PhoneForm>({ resolver: zodResolver(phoneSchema), defaultValues: { number: "" } });
   const resetForm = useForm<ResetForm>({ resolver: zodResolver(resetSchema), defaultValues: { otp: "", newPassword: "", confirmPassword: "" } });
 
   const onRequestOtp = async (data: EmailForm | PhoneForm) => {
     try {
-      const payload = "email" in data
-        ? { email: data.email }
-        : { phone: (data as PhoneForm).phone };
+      let payload: { email?: string; phone?: string };
+      let displayValue: string;
+
+      if ("email" in data) {
+        payload = { email: data.email };
+        displayValue = data.email;
+        setIdentifier({ value: data.email, type: "email" });
+      } else {
+        const fullPhone = `${countryCode}${(data as PhoneForm).number.replace(/^0+/, "")}`;
+        payload = { phone: fullPhone };
+        displayValue = fullPhone;
+        setIdentifier({ value: fullPhone, type: "phone" });
+      }
+
       const result = await forgotMutation.mutateAsync({ data: payload });
-      setIdentifier({
-        value: "email" in data ? data.email : (data as PhoneForm).phone,
-        type: "email" in data ? "email" : "phone",
-      });
       setDemoOtp(result.otp);
       setStep("otp");
     } catch (e: any) {
@@ -103,6 +158,7 @@ export default function ForgotPassword() {
                     {(["email", "phone"] as const).map((m) => (
                       <button
                         key={m}
+                        type="button"
                         onClick={() => setMethod(m)}
                         className={cn(
                           "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all",
@@ -144,21 +200,27 @@ export default function ForgotPassword() {
                       <motion.div key="phone-form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
                         <Form {...phoneForm}>
                           <form onSubmit={phoneForm.handleSubmit(onRequestOtp)} className="space-y-4">
-                            <FormField control={phoneForm.control} name="phone" render={({ field }) => (
+                            <FormField control={phoneForm.control} name="number" render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Phone Number</FormLabel>
                                 <FormControl>
-                                  <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input placeholder="+91 98765 43210" type="tel" className="rounded-xl pl-9" {...field} />
+                                  <div className="flex h-10 rounded-xl border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
+                                    <CountryCodeSelect value={countryCode} onChange={setCountryCode} />
+                                    <div className="w-px bg-border self-stretch my-1.5" />
+                                    <input
+                                      type="tel"
+                                      placeholder="98765 43210"
+                                      className="flex-1 px-3 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                                      {...field}
+                                    />
                                   </div>
                                 </FormControl>
+                                <p className="text-xs text-muted-foreground">
+                                  Select your country code, then enter your number
+                                </p>
                                 <FormMessage />
                               </FormItem>
                             )} />
-                            <p className="text-xs text-muted-foreground bg-muted/50 rounded-xl px-3 py-2">
-                              Your phone number must match the one registered on your account.
-                            </p>
                             <Button type="submit" className="w-full h-11 rounded-full" disabled={forgotMutation.isPending}>
                               {forgotMutation.isPending ? "Sending OTP..." : "Send OTP via SMS"}
                             </Button>
@@ -196,7 +258,7 @@ export default function ForgotPassword() {
                         Demo Mode — {identifier.type === "phone" ? "SMS" : "Email"} OTP
                       </p>
                       <p className="text-sm text-amber-800">
-                        In production this would be {identifier.type === "phone" ? "SMSed" : "emailed"}. Your OTP:
+                        In production this would be {identifier.type === "phone" ? "sent via SMS" : "emailed"}. Your OTP:
                       </p>
                       <p className="text-3xl font-mono font-bold text-amber-700 tracking-widest mt-1">{demoOtp}</p>
                     </div>
