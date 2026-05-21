@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForgotPassword, useResetPassword } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplet, Mail, Phone, KeyRound, ShieldCheck, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { Droplet, Mail, Phone, KeyRound, ShieldCheck, Eye, EyeOff, ChevronUp, ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -51,26 +51,72 @@ type EmailForm = z.infer<typeof emailSchema>;
 type PhoneForm = z.infer<typeof phoneSchema>;
 type ResetForm = z.infer<typeof resetSchema>;
 
-function CountryCodeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const selected = COUNTRIES.find((c) => c.code === value && c.name === "India") ?? COUNTRIES.find((c) => c.code === value) ?? COUNTRIES[0];
+function CountryCodeSelect({ value, onChange }: { value: string; onChange: (v: string, name: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [selectedName, setSelectedName] = useState("India");
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = COUNTRIES.find((c) => c.code === value && c.name === selectedName)
+    ?? COUNTRIES.find((c) => c.code === value)
+    ?? COUNTRIES[0];
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
-    <div className="relative">
-      <select
-        value={`${selected.flag}${value}|${selected.name}`}
-        onChange={(e) => {
-          const code = e.target.value.split("|")[0].replace(/\p{Emoji}/gu, "").trim();
-          onChange(code);
-        }}
-        className="h-full w-full rounded-l-xl border-0 bg-muted/60 pl-3 pr-8 text-sm font-medium text-foreground appearance-none focus:outline-none focus:ring-0 cursor-pointer"
-        style={{ minWidth: "90px" }}
+    <div ref={ref} className="relative h-full">
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="h-full flex items-center gap-1.5 px-3 bg-muted/60 rounded-l-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
+        style={{ minWidth: "88px" }}
       >
-        {COUNTRIES.map((c) => (
-          <option key={`${c.name}-${c.code}`} value={`${c.flag}${c.code}|${c.name}`}>
-            {c.flag} {c.code}  {c.name}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-base leading-none">{selected.flag}</span>
+        <span className="text-xs font-semibold">{selected.code}</span>
+        {open ? <ChevronUp className="h-3 w-3 text-muted-foreground ml-auto shrink-0" /> : <ChevronDown className="h-3 w-3 text-muted-foreground ml-auto shrink-0" />}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute bottom-full left-0 mb-1 z-50 w-56 rounded-2xl bg-popover border border-border shadow-xl overflow-hidden"
+          >
+            <div className="max-h-56 overflow-y-auto py-1">
+              {COUNTRIES.map((c) => {
+                const isActive = c.code === value && c.name === selectedName;
+                return (
+                  <button
+                    key={`${c.name}-${c.code}`}
+                    type="button"
+                    onClick={() => {
+                      onChange(c.code, c.name);
+                      setSelectedName(c.name);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-primary/8 transition-colors text-left",
+                      isActive && "bg-primary/10 text-primary"
+                    )}
+                  >
+                    <span className="text-base shrink-0">{c.flag}</span>
+                    <span className="flex-1 truncate text-foreground">{c.name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{c.code}</span>
+                    {isActive && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -95,16 +141,13 @@ export default function ForgotPassword() {
   const onRequestOtp = async (data: EmailForm | PhoneForm) => {
     try {
       let payload: { email?: string; phone?: string };
-      let displayValue: string;
 
       if ("email" in data) {
         payload = { email: data.email };
-        displayValue = data.email;
         setIdentifier({ value: data.email, type: "email" });
       } else {
         const fullPhone = `${countryCode}${(data as PhoneForm).number.replace(/^0+/, "")}`;
         payload = { phone: fullPhone };
-        displayValue = fullPhone;
         setIdentifier({ value: fullPhone, type: "phone" });
       }
 
@@ -127,12 +170,6 @@ export default function ForgotPassword() {
     } catch (e: any) {
       toast({ title: "Invalid OTP", description: e?.error ?? "The OTP is incorrect or expired.", variant: "destructive" });
     }
-  };
-
-  const goBack = () => {
-    setStep("request");
-    setDemoOtp("");
-    resetForm.reset();
   };
 
   return (
@@ -162,9 +199,7 @@ export default function ForgotPassword() {
                         onClick={() => setMethod(m)}
                         className={cn(
                           "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all",
-                          method === m
-                            ? "bg-primary text-white shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
+                          method === m ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                         )}
                       >
                         {m === "email" ? <Mail className="h-4 w-4" /> : <Phone className="h-4 w-4" />}
@@ -204,19 +239,22 @@ export default function ForgotPassword() {
                               <FormItem>
                                 <FormLabel>Phone Number</FormLabel>
                                 <FormControl>
-                                  <div className="flex h-10 rounded-xl border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
-                                    <CountryCodeSelect value={countryCode} onChange={setCountryCode} />
+                                  <div className="flex h-10 rounded-xl border border-input bg-background overflow-visible focus-within:ring-2 focus-within:ring-ring relative">
+                                    <CountryCodeSelect
+                                      value={countryCode}
+                                      onChange={(code, name) => setCountryCode(code)}
+                                    />
                                     <div className="w-px bg-border self-stretch my-1.5" />
                                     <input
                                       type="tel"
                                       placeholder="98765 43210"
-                                      className="flex-1 px-3 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                                      className="flex-1 px-3 text-sm bg-transparent outline-none placeholder:text-muted-foreground rounded-r-xl"
                                       {...field}
                                     />
                                   </div>
                                 </FormControl>
                                 <p className="text-xs text-muted-foreground">
-                                  Select your country code, then enter your number
+                                  Select your country, then enter your number
                                 </p>
                                 <FormMessage />
                               </FormItem>
@@ -301,7 +339,7 @@ export default function ForgotPassword() {
                         <ShieldCheck className="h-4 w-4 mr-2" />
                         {resetMutation.isPending ? "Resetting..." : "Reset Password"}
                       </Button>
-                      <Button type="button" variant="ghost" size="sm" className="w-full rounded-full text-muted-foreground" onClick={goBack}>
+                      <Button type="button" variant="ghost" size="sm" className="w-full rounded-full text-muted-foreground" onClick={() => { setStep("request"); setDemoOtp(""); resetForm.reset(); }}>
                         ← Try a different {identifier.type === "phone" ? "number" : "email"}
                       </Button>
                     </form>

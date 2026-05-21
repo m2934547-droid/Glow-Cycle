@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Droplet, Heart, Facebook, Instagram, Linkedin, Github, Mail, Phone } from "lucide-react";
 import { useGetMe } from "@workspace/api-client-react";
 
@@ -8,6 +8,22 @@ const socialLinks = [
   { icon: Linkedin,  label: "LinkedIn",  href: "#" },
   { icon: Github,    label: "GitHub",    href: "#" },
 ];
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const [, setLocation] = useLocation();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setLocation(href);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }}
+      className="text-sm text-rose-200 hover:text-white transition-colors text-left"
+    >
+      {children}
+    </button>
+  );
+}
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -59,9 +75,7 @@ export function Footer() {
                     { label: "Consultants",   href: "/consultants" },
                   ].map((item) => (
                     <li key={item.href}>
-                      <Link href={item.href} className="text-sm text-rose-200 hover:text-white transition-colors">
-                        {item.label}
-                      </Link>
+                      <FooterLink href={item.href}>{item.label}</FooterLink>
                     </li>
                   ))}
                 </ul>
@@ -75,9 +89,7 @@ export function Footer() {
                     { label: "Profile",       href: "/profile" },
                   ].map((item) => (
                     <li key={item.href}>
-                      <Link href={item.href} className="text-sm text-rose-200 hover:text-white transition-colors">
-                        {item.label}
-                      </Link>
+                      <FooterLink href={item.href}>{item.label}</FooterLink>
                     </li>
                   ))}
                 </ul>
@@ -94,9 +106,7 @@ export function Footer() {
                     { label: "Sign Up", href: "/signup" },
                   ].map((item) => (
                     <li key={item.href}>
-                      <Link href={item.href} className="text-sm text-rose-200 hover:text-white transition-colors">
-                        {item.label}
-                      </Link>
+                      <FooterLink href={item.href}>{item.label}</FooterLink>
                     </li>
                   ))}
                 </ul>
@@ -123,8 +133,10 @@ export function Footer() {
                   href="mailto:support@glowcycle.com"
                   className="flex items-start gap-2.5 text-sm text-rose-200 hover:text-white transition-colors group"
                 >
-                  <span className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-colors"
-                    style={{ background: "rgba(255,255,255,0.12)" }}>
+                  <span
+                    className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: "rgba(255,255,255,0.12)" }}
+                  >
                     <Mail className="h-3.5 w-3.5 text-rose-200 group-hover:text-white" />
                   </span>
                   <span className="leading-relaxed">support@glowcycle.com</span>
@@ -135,8 +147,10 @@ export function Footer() {
                   href="tel:+918800123456"
                   className="flex items-start gap-2.5 text-sm text-rose-200 hover:text-white transition-colors group"
                 >
-                  <span className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-colors"
-                    style={{ background: "rgba(255,255,255,0.12)" }}>
+                  <span
+                    className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: "rgba(255,255,255,0.12)" }}
+                  >
                     <Phone className="h-3.5 w-3.5 text-rose-200 group-hover:text-white" />
                   </span>
                   <span className="leading-relaxed">+91 88001 23456</span>
