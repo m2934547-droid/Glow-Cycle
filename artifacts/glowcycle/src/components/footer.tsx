@@ -139,12 +139,12 @@ export function Footer() {
                   >
                     <Mail className="h-3.5 w-3.5 text-rose-200 group-hover:text-white" />
                   </span>
-                  <span className="leading-relaxed">support@glowcycle.com</span>
+                  <span className="leading-relaxed">manjotkaur5267@gmail.com</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="tel:+918800123456"
+                  href="tel:+916239592150"
                   className="flex items-start gap-2.5 text-sm text-rose-200 hover:text-white transition-colors group"
                 >
                   <span
@@ -153,7 +153,7 @@ export function Footer() {
                   >
                     <Phone className="h-3.5 w-3.5 text-rose-200 group-hover:text-white" />
                   </span>
-                  <span className="leading-relaxed">+91 88001 23456</span>
+                  <span className="leading-relaxed">+91 62395 92150</span>
                 </a>
               </li>
             </ul>
