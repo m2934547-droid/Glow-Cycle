@@ -16,8 +16,12 @@ import { motion } from "framer-motion";
 
 const cycleSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().optional(),
   cycleLength: z.coerce.number().min(15, "Min 15 days").max(45, "Max 45 days"),
   notes: z.string().optional(),
+}).refine((d) => !d.endDate || d.endDate >= d.startDate, {
+  message: "End date must be on or after start date",
+  path: ["endDate"],
 });
 
 type CycleFormValues = z.infer<typeof cycleSchema>;
@@ -36,6 +40,7 @@ export default function Tracker() {
     resolver: zodResolver(cycleSchema),
     defaultValues: {
       startDate: format(new Date(), "yyyy-MM-dd"),
+      endDate: "",
       cycleLength: 28,
       notes: "",
     },
@@ -107,19 +112,34 @@ export default function Tracker() {
               <CardContent className="pt-6">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="startDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Start Date</FormLabel>
-                          <FormControl>
-                            <Input type="date" className="rounded-xl" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="startDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Date</FormLabel>
+                            <FormControl>
+                              <Input type="date" className="rounded-xl" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="endDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Date <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                            <FormControl>
+                              <Input type="date" className="rounded-xl" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
                       name="cycleLength"
@@ -220,12 +240,30 @@ export default function Tracker() {
 
                       return (
                         <div key={cycle.id} className="p-4 rounded-2xl border bg-card hover:bg-muted/50 transition-colors flex items-start justify-between group">
-                          <div>
-                            <p className="font-medium text-lg text-foreground">
-                              {format(new Date(cycle.startDate), "MMMM d, yyyy")}
-                            </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-500 bg-rose-50 border border-rose-100 rounded-full px-2.5 py-0.5">
+                                <Droplets className="h-3.5 w-3.5" /> Period
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-2 mt-2">
+                              <p className="font-medium text-base text-foreground">
+                                {format(new Date(cycle.startDate), "MMM d, yyyy")}
+                              </p>
+                              {cycle.endDate && (
+                                <>
+                                  <span className="text-muted-foreground">→</span>
+                                  <p className="font-medium text-base text-foreground">
+                                    {format(new Date(cycle.endDate), "MMM d, yyyy")}
+                                  </p>
+                                  <span className="text-xs text-rose-500 font-medium bg-rose-50 rounded-full px-2 py-0.5">
+                                    {differenceInDays(new Date(cycle.endDate), new Date(cycle.startDate)) + 1} day period
+                                  </span>
+                                </>
+                              )}
+                            </div>
                             <p className="text-sm text-muted-foreground mt-1">
-                              {actualLength} days
+                              Cycle: {actualLength} days
                             </p>
                             {cycle.notes && (
                               <p className="text-sm text-foreground/80 mt-2 bg-secondary/20 p-2 rounded-lg italic">

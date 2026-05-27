@@ -11,7 +11,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { data: user } = useGetMe();
   const logoutMutation = useLogout();
   const queryClient = useQueryClient();
-  const { data: cart } = useGetCart({ query: { enabled: !!user } });
+  const { data: cart } = useGetCart({ query: { enabled: !!user, queryKey: getGetCartQueryKey() } });
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {

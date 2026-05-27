@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useGetWellnessTips, useGetCurrentCycle, getGetWellnessTipsQueryKey, getGetCurrentCycleQueryKey } from "@workspace/api-client-react";
-import { GetWellnessTipsPhase } from "@workspace/api-zod";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HeartPulse, Droplets, Apple, Dumbbell, Coffee, Smile } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { MusicSuggestions } from "@/components/music-suggestions";
+
+type GetWellnessTipsPhase = "menstrual" | "follicular" | "ovulation" | "luteal";
 
 export default function Wellness() {
   const { data: currentCycle, isLoading: isCycleLoading } = useGetCurrentCycle({ query: { queryKey: getGetCurrentCycleQueryKey() } });
@@ -113,7 +114,7 @@ export default function Wellness() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <ul className="space-y-4">
-                    {tips.dietTips.map((tip, i) => (
+                    {tips.dietTips.map((tip: string, i: number) => (
                       <li key={i} className="flex gap-3 text-muted-foreground">
                         <span className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-2 shrink-0" />
                         <span className="leading-relaxed">{tip}</span>
@@ -133,7 +134,7 @@ export default function Wellness() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <ul className="space-y-4">
-                    {tips.exerciseTips.map((tip, i) => (
+                    {tips.exerciseTips.map((tip: string, i: number) => (
                       <li key={i} className="flex gap-3 text-muted-foreground">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0" />
                         <span className="leading-relaxed">{tip}</span>
@@ -153,7 +154,7 @@ export default function Wellness() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <ul className="space-y-4">
-                    {tips.selfCareTips.map((tip, i) => (
+                    {tips.selfCareTips.map((tip: string, i: number) => (
                       <li key={i} className="flex gap-3 text-muted-foreground">
                         <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-2 shrink-0" />
                         <span className="leading-relaxed">{tip}</span>
@@ -173,7 +174,7 @@ export default function Wellness() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <ul className="space-y-4">
-                    {tips.moodTips.map((tip, i) => (
+                    {tips.moodTips.map((tip: string, i: number) => (
                       <li key={i} className="flex gap-3 text-muted-foreground">
                         <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 shrink-0" />
                         <span className="leading-relaxed">{tip}</span>

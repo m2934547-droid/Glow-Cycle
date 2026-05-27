@@ -7,6 +7,5 @@
  */
 
 export interface ForgotPasswordBody {
-  email?: string;
-  phone?: string;
+  email: string;
 }

@@ -74,6 +74,7 @@ router.post("/cycles", async (req, res): Promise<void> => {
   const [cycle] = await db.insert(cyclesTable).values({
     userId,
     startDate: parsed.data.startDate,
+    endDate: parsed.data.endDate ?? null,
     cycleLength: parsed.data.cycleLength ?? 28,
     notes: parsed.data.notes ?? null,
   }).returning();

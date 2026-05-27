@@ -20,6 +20,22 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (
+    error &&
+    typeof error === "object" &&
+    "data" in error &&
+    error.data &&
+    typeof error.data === "object" &&
+    "error" in error.data &&
+    typeof (error.data as { error?: unknown }).error === "string"
+  ) {
+    return (error.data as { error: string }).error;
+  }
+
+  return fallback;
+}
+
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [, setLocation] = useLocation();
@@ -45,7 +61,7 @@ export default function Login() {
         onError: (error) => {
           toast({ 
             title: "Login failed", 
-            description: error?.error || "Invalid email or password", 
+            description: getApiErrorMessage(error, "Invalid email or password"), 
             variant: "destructive" 
           });
         },

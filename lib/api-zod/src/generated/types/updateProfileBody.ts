@@ -11,4 +11,5 @@ export interface UpdateProfileBody {
   age?: number;
   heightCm?: number;
   weightKg?: number;
+  phoneNumber?: string;
 }

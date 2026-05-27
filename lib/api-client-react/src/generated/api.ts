@@ -41,6 +41,7 @@ import type {
   LoginBody,
   MessageResponse,
   OrderHistoryItem,
+  OtpEmailBody,
   Partner,
   Product,
   ProductRatingItem,
@@ -50,9 +51,11 @@ import type {
   ResetPasswordBody,
   SharedCycleNotification,
   SignupBody,
+  SignupVerifyBody,
   UpdateConsultantBody,
   UpdateProfileBody,
   User,
+  VerifyOtpResponse,
   WellnessTips,
 } from "./api.schemas";
 
@@ -141,7 +144,7 @@ export function useHealthCheck<
 }
 
 /**
- * @summary Register a new user
+ * @summary Start signup and send verification OTP
  */
 export const getSignupUrl = () => {
   return `/api/auth/signup`;
@@ -150,8 +153,8 @@ export const getSignupUrl = () => {
 export const signup = async (
   signupBody: SignupBody,
   options?: RequestInit,
-): Promise<AuthResponse> => {
-  return customFetch<AuthResponse>(getSignupUrl(), {
+): Promise<MessageResponse> => {
+  return customFetch<MessageResponse>(getSignupUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -204,7 +207,7 @@ export type SignupMutationBody = BodyType<SignupBody>;
 export type SignupMutationError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Register a new user
+ * @summary Start signup and send verification OTP
  */
 export const useSignup = <
   TError = ErrorType<ErrorResponse>,
@@ -224,6 +227,178 @@ export const useSignup = <
   TContext
 > => {
   return useMutation(getSignupMutationOptions(options));
+};
+
+/**
+ * @summary Resend signup verification OTP
+ */
+export const getSignupResendOtpUrl = () => {
+  return `/api/auth/signup/resend-otp`;
+};
+
+export const signupResendOtp = async (
+  otpEmailBody: OtpEmailBody,
+  options?: RequestInit,
+): Promise<MessageResponse> => {
+  return customFetch<MessageResponse>(getSignupResendOtpUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(otpEmailBody),
+  });
+};
+
+export const getSignupResendOtpMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof signupResendOtp>>,
+    TError,
+    { data: BodyType<OtpEmailBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof signupResendOtp>>,
+  TError,
+  { data: BodyType<OtpEmailBody> },
+  TContext
+> => {
+  const mutationKey = ["signupResendOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof signupResendOtp>>,
+    { data: BodyType<OtpEmailBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return signupResendOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SignupResendOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof signupResendOtp>>
+>;
+export type SignupResendOtpMutationBody = BodyType<OtpEmailBody>;
+export type SignupResendOtpMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Resend signup verification OTP
+ */
+export const useSignupResendOtp = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof signupResendOtp>>,
+    TError,
+    { data: BodyType<OtpEmailBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof signupResendOtp>>,
+  TError,
+  { data: BodyType<OtpEmailBody> },
+  TContext
+> => {
+  return useMutation(getSignupResendOtpMutationOptions(options));
+};
+
+/**
+ * @summary Verify signup OTP and activate account
+ */
+export const getSignupVerifyOtpUrl = () => {
+  return `/api/auth/signup/verify`;
+};
+
+export const signupVerifyOtp = async (
+  signupVerifyBody: SignupVerifyBody,
+  options?: RequestInit,
+): Promise<AuthResponse> => {
+  return customFetch<AuthResponse>(getSignupVerifyOtpUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(signupVerifyBody),
+  });
+};
+
+export const getSignupVerifyOtpMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof signupVerifyOtp>>,
+    TError,
+    { data: BodyType<SignupVerifyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof signupVerifyOtp>>,
+  TError,
+  { data: BodyType<SignupVerifyBody> },
+  TContext
+> => {
+  const mutationKey = ["signupVerifyOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof signupVerifyOtp>>,
+    { data: BodyType<SignupVerifyBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return signupVerifyOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SignupVerifyOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof signupVerifyOtp>>
+>;
+export type SignupVerifyOtpMutationBody = BodyType<SignupVerifyBody>;
+export type SignupVerifyOtpMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Verify signup OTP and activate account
+ */
+export const useSignupVerifyOtp = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof signupVerifyOtp>>,
+    TError,
+    { data: BodyType<SignupVerifyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof signupVerifyOtp>>,
+  TError,
+  { data: BodyType<SignupVerifyBody> },
+  TContext
+> => {
+  return useMutation(getSignupVerifyOtpMutationOptions(options));
 };
 
 /**
@@ -2163,7 +2338,7 @@ export function useGetMyRatings<
 }
 
 /**
- * @summary Request password reset OTP
+ * @summary Request password reset OTP by email
  */
 export const getForgotPasswordUrl = () => {
   return `/api/auth/forgot-password`;
@@ -2226,7 +2401,7 @@ export type ForgotPasswordMutationBody = BodyType<ForgotPasswordBody>;
 export type ForgotPasswordMutationError = ErrorType<unknown>;
 
 /**
- * @summary Request password reset OTP
+ * @summary Request password reset OTP by email
  */
 export const useForgotPassword = <
   TError = ErrorType<unknown>,
@@ -2249,7 +2424,93 @@ export const useForgotPassword = <
 };
 
 /**
- * @summary Reset password with OTP
+ * @summary Verify forgot-password OTP
+ */
+export const getForgotPasswordVerifyOtpUrl = () => {
+  return `/api/auth/forgot-password/verify`;
+};
+
+export const forgotPasswordVerifyOtp = async (
+  signupVerifyBody: SignupVerifyBody,
+  options?: RequestInit,
+): Promise<VerifyOtpResponse> => {
+  return customFetch<VerifyOtpResponse>(getForgotPasswordVerifyOtpUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(signupVerifyBody),
+  });
+};
+
+export const getForgotPasswordVerifyOtpMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof forgotPasswordVerifyOtp>>,
+    TError,
+    { data: BodyType<SignupVerifyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof forgotPasswordVerifyOtp>>,
+  TError,
+  { data: BodyType<SignupVerifyBody> },
+  TContext
+> => {
+  const mutationKey = ["forgotPasswordVerifyOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof forgotPasswordVerifyOtp>>,
+    { data: BodyType<SignupVerifyBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return forgotPasswordVerifyOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ForgotPasswordVerifyOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof forgotPasswordVerifyOtp>>
+>;
+export type ForgotPasswordVerifyOtpMutationBody = BodyType<SignupVerifyBody>;
+export type ForgotPasswordVerifyOtpMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Verify forgot-password OTP
+ */
+export const useForgotPasswordVerifyOtp = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof forgotPasswordVerifyOtp>>,
+    TError,
+    { data: BodyType<SignupVerifyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof forgotPasswordVerifyOtp>>,
+  TError,
+  { data: BodyType<SignupVerifyBody> },
+  TContext
+> => {
+  return useMutation(getForgotPasswordVerifyOtpMutationOptions(options));
+};
+
+/**
+ * @summary Reset password after OTP verification
  */
 export const getResetPasswordUrl = () => {
   return `/api/auth/reset-password`;
@@ -2312,7 +2573,7 @@ export type ResetPasswordMutationBody = BodyType<ResetPasswordBody>;
 export type ResetPasswordMutationError = ErrorType<unknown>;
 
 /**
- * @summary Reset password with OTP
+ * @summary Reset password after OTP verification
  */
 export const useResetPassword = <
   TError = ErrorType<unknown>,

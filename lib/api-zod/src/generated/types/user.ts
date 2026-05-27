@@ -10,6 +10,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phoneNumber?: string;
   age: number;
   heightCm: number;
   weightKg: number;

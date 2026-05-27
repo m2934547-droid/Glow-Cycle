@@ -6,6 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ForgotPasswordResponse {
-  message: string;
+export interface OtpEmailBody {
+  email: string;
 }

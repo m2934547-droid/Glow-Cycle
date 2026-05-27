@@ -3,10 +3,10 @@ import { Droplet, Heart, Facebook, Instagram, Linkedin, Github, Mail, Phone } fr
 import { useGetMe } from "@workspace/api-client-react";
 
 const socialLinks = [
-  { icon: Facebook,  label: "Facebook",  href: "#" },
-  { icon: Instagram, label: "Instagram", href: "#" },
-  { icon: Linkedin,  label: "LinkedIn",  href: "#" },
-  { icon: Github,    label: "GitHub",    href: "#" },
+  { icon: Facebook,  label: "Facebook",  href: "https://www.facebook.com/login" },
+  { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/accounts/login/" },
+  { icon: Linkedin,  label: "LinkedIn",  href: "https://www.linkedin.com/login" },
+  { icon: Github,    label: "GitHub",    href: "https://github.com/login" },
 ];
 
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {

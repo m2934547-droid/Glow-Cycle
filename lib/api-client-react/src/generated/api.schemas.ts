@@ -24,6 +24,7 @@ export interface SignupBody {
   age: number;
   heightCm: number;
   weightKg: number;
+  phoneNumber?: string;
 }
 
 export interface LoginBody {
@@ -35,6 +36,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phoneNumber?: string;
   age: number;
   heightCm: number;
   weightKg: number;
@@ -54,12 +56,14 @@ export interface UpdateProfileBody {
   age?: number;
   heightCm?: number;
   weightKg?: number;
+  phoneNumber?: string;
 }
 
 export interface Cycle {
   id: number;
   userId: number;
   startDate: string;
+  endDate?: string;
   cycleLength: number;
   notes?: string;
   createdAt: string;
@@ -67,6 +71,7 @@ export interface Cycle {
 
 export interface CreateCycleBody {
   startDate: string;
+  endDate?: string;
   cycleLength: number;
   notes?: string;
 }
@@ -224,19 +229,29 @@ export interface RateProductBody {
 }
 
 export interface ForgotPasswordBody {
-  email?: string;
-  phone?: string;
+  email: string;
+}
+
+export interface OtpEmailBody {
+  email: string;
+}
+
+export interface SignupVerifyBody {
+  email: string;
+  otp: string;
 }
 
 export interface ForgotPasswordResponse {
   message: string;
-  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  message: string;
+  verified: boolean;
 }
 
 export interface ResetPasswordBody {
-  email?: string;
-  phone?: string;
-  otp: string;
+  email: string;
   newPassword: string;
 }
 

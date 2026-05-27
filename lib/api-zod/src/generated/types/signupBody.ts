@@ -13,4 +13,5 @@ export interface SignupBody {
   age: number;
   heightCm: number;
   weightKg: number;
+  phoneNumber?: string;
 }

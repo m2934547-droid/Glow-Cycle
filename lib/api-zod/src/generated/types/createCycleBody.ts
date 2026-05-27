@@ -8,6 +8,7 @@
 
 export interface CreateCycleBody {
   startDate: string;
+  endDate?: string;
   cycleLength: number;
   notes?: string;
 }

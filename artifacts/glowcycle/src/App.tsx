@@ -22,6 +22,8 @@ import AdminConsultants from "@/pages/admin-consultants";
 import Consultants from "@/pages/consultants";
 import Orders from "@/pages/orders";
 import ForgotPassword from "@/pages/forgot-password";
+import SignupVerify from "@/pages/signup-verify";
+import ResetPasswordVerify from "@/pages/reset-password-verify";
 import { Redirect } from "wouter";
 import NotFound from "@/pages/not-found";
 import { Chatbot } from "@/components/chatbot";
@@ -42,6 +44,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={Signup} />
+        <Route path="/signup/verify" component={SignupVerify} />
         
         {/* Protected Routes */}
         <Route path="/dashboard">
@@ -72,6 +75,7 @@ function Router() {
           <ProtectedRoute><Orders /></ProtectedRoute>
         </Route>
         <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password/verify" component={ResetPasswordVerify} />
         
         {/* Admin Routes */}
         <Route path="/admin">

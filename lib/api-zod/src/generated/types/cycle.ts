@@ -10,6 +10,7 @@ export interface Cycle {
   id: number;
   userId: number;
   startDate: string;
+  endDate?: string;
   cycleLength: number;
   notes?: string;
   createdAt: string;

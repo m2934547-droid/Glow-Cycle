@@ -7,8 +7,6 @@
  */
 
 export interface ResetPasswordBody {
-  email?: string;
-  phone?: string;
-  otp: string;
+  email: string;
   newPassword: string;
 }

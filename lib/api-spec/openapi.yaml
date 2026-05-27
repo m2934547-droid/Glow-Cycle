@@ -50,7 +50,7 @@ paths:
     post:
       operationId: signup
       tags: [auth]
-      summary: Register a new user
+      summary: Start signup and send verification OTP
       requestBody:
         required: true
         content:
@@ -58,12 +58,12 @@ paths:
             schema:
               $ref: "#/components/schemas/SignupBody"
       responses:
-        "201":
-          description: User created
+        "200":
+          description: OTP sent
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResponse"
+                $ref: "#/components/schemas/MessageResponse"
         "400":
           description: Validation error
           content:
@@ -76,6 +76,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/signup/resend-otp:
+    post:
+      operationId: signupResendOtp
+      tags: [auth]
+      summary: Resend signup verification OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpEmailBody"
+      responses:
+        "200":
+          description: OTP resent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/signup/verify:
+    post:
+      operationId: signupVerifyOtp
+      tags: [auth]
+      summary: Verify signup OTP and activate account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupVerifyBody"
+      responses:
+        "200":
+          description: Account verified and logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
 
   /auth/login:
     post:
@@ -492,7 +530,7 @@ paths:
     post:
       operationId: forgotPassword
       tags: [auth]
-      summary: Request password reset OTP
+      summary: Request password reset OTP by email
       requestBody:
         required: true
         content:
@@ -507,11 +545,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/ForgotPasswordResponse"
 
+  /auth/forgot-password/verify:
+    post:
+      operationId: forgotPasswordVerifyOtp
+      tags: [auth]
+      summary: Verify forgot-password OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupVerifyBody"
+      responses:
+        "200":
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyOtpResponse"
+
   /auth/reset-password:
     post:
       operationId: resetPassword
       tags: [auth]
-      summary: Reset password with OTP
+      summary: Reset password after OTP verification
       requestBody:
         required: true
         content:
@@ -783,6 +840,8 @@ components:
           type: number
         weightKg:
           type: number
+        phoneNumber:
+          type: string
       required: [name, email, password, age, heightCm, weightKg]
 
     LoginBody:
@@ -812,6 +871,8 @@ components:
           type: string
         email:
           type: string
+        phoneNumber:
+          type: string
         age:
           type: integer
         heightCm:
@@ -839,6 +900,8 @@ components:
           type: number
         weightKg:
           type: number
+        phoneNumber:
+          type: string
 
     Cycle:
       type: object
@@ -848,6 +911,8 @@ components:
         userId:
           type: integer
         startDate:
+          type: string
+        endDate:
           type: string
         cycleLength:
           type: integer
@@ -861,6 +926,8 @@ components:
       type: object
       properties:
         startDate:
+          type: string
+        endDate:
           type: string
         cycleLength:
           type: integer
@@ -1173,30 +1240,48 @@ components:
       properties:
         email:
           type: string
-        phone:
+      required: [email]
+
+    OtpEmailBody:
+      type: object
+      properties:
+        email:
           type: string
+      required: [email]
+
+    SignupVerifyBody:
+      type: object
+      properties:
+        email:
+          type: string
+        otp:
+          type: string
+      required: [email, otp]
 
     ForgotPasswordResponse:
       type: object
       properties:
         message:
           type: string
-        otp:
+      required: [message]
+
+    VerifyOtpResponse:
+      type: object
+      properties:
+        message:
           type: string
-      required: [message, otp]
+        verified:
+          type: boolean
+      required: [message, verified]
 
     ResetPasswordBody:
       type: object
       properties:
         email:
           type: string
-        phone:
-          type: string
-        otp:
-          type: string
         newPassword:
           type: string
-      required: [otp, newPassword]
+      required: [email, newPassword]
 
     Consultant:
       type: object

@@ -7,6 +7,7 @@ export const cyclesTable = pgTable("cycles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   startDate: text("start_date").notNull(),
+  endDate: text("end_date"),
   cycleLength: integer("cycle_length").notNull().default(28),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

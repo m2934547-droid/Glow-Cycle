@@ -15,7 +15,7 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * @summary Register a new user
+ * @summary Start signup and send verification OTP
  */
 export const SignupBody = zod.object({
   name: zod.string(),
@@ -24,6 +24,47 @@ export const SignupBody = zod.object({
   age: zod.number(),
   heightCm: zod.number(),
   weightKg: zod.number(),
+  phoneNumber: zod.string().optional(),
+});
+
+export const SignupResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Resend signup verification OTP
+ */
+export const SignupResendOtpBody = zod.object({
+  email: zod.string(),
+});
+
+export const SignupResendOtpResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Verify signup OTP and activate account
+ */
+export const SignupVerifyOtpBody = zod.object({
+  email: zod.string(),
+  otp: zod.string(),
+});
+
+export const SignupVerifyOtpResponse = zod.object({
+  user: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string(),
+    phoneNumber: zod.string().optional(),
+    age: zod.number(),
+    heightCm: zod.number(),
+    weightKg: zod.number(),
+    bmi: zod.number(),
+    bmiCategory: zod.string(),
+    isAdmin: zod.boolean(),
+    createdAt: zod.string(),
+  }),
+  message: zod.string(),
 });
 
 /**
@@ -39,6 +80,7 @@ export const LoginResponse = zod.object({
     id: zod.number(),
     name: zod.string(),
     email: zod.string(),
+    phoneNumber: zod.string().optional(),
     age: zod.number(),
     heightCm: zod.number(),
     weightKg: zod.number(),
@@ -64,6 +106,7 @@ export const GetMeResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   email: zod.string(),
+  phoneNumber: zod.string().optional(),
   age: zod.number(),
   heightCm: zod.number(),
   weightKg: zod.number(),
@@ -81,12 +124,14 @@ export const UpdateProfileBody = zod.object({
   age: zod.number().optional(),
   heightCm: zod.number().optional(),
   weightKg: zod.number().optional(),
+  phoneNumber: zod.string().optional(),
 });
 
 export const UpdateProfileResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   email: zod.string(),
+  phoneNumber: zod.string().optional(),
   age: zod.number(),
   heightCm: zod.number(),
   weightKg: zod.number(),
@@ -103,6 +148,7 @@ export const GetCyclesResponseItem = zod.object({
   id: zod.number(),
   userId: zod.number(),
   startDate: zod.string(),
+  endDate: zod.string().optional(),
   cycleLength: zod.number(),
   notes: zod.string().optional(),
   createdAt: zod.string(),
@@ -114,6 +160,7 @@ export const GetCyclesResponse = zod.array(GetCyclesResponseItem);
  */
 export const CreateCycleBody = zod.object({
   startDate: zod.string(),
+  endDate: zod.string().optional(),
   cycleLength: zod.number(),
   notes: zod.string().optional(),
 });
@@ -408,25 +455,34 @@ export const GetMyRatingsResponseItem = zod.object({
 export const GetMyRatingsResponse = zod.array(GetMyRatingsResponseItem);
 
 /**
- * @summary Request password reset OTP
+ * @summary Request password reset OTP by email
  */
 export const ForgotPasswordBody = zod.object({
-  email: zod.string().optional(),
-  phone: zod.string().optional(),
+  email: zod.string(),
 });
 
 export const ForgotPasswordResponse = zod.object({
   message: zod.string(),
-  otp: zod.string(),
 });
 
 /**
- * @summary Reset password with OTP
+ * @summary Verify forgot-password OTP
+ */
+export const ForgotPasswordVerifyOtpBody = zod.object({
+  email: zod.string(),
+  otp: zod.string(),
+});
+
+export const ForgotPasswordVerifyOtpResponse = zod.object({
+  message: zod.string(),
+  verified: zod.boolean(),
+});
+
+/**
+ * @summary Reset password after OTP verification
  */
 export const ResetPasswordBody = zod.object({
-  email: zod.string().optional(),
-  phone: zod.string().optional(),
-  otp: zod.string(),
+  email: zod.string(),
   newPassword: zod.string(),
 });
 

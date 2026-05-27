@@ -16,6 +16,7 @@ import { useState } from "react";
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
+  phoneNumber: z.string().min(10, "Enter at least 10 digits").max(20, "Invalid phone number").optional().or(z.literal("")),
   password: z.string().min(6, "Password must be at least 6 characters"),
   age: z.coerce.number().min(10, "Must be at least 10").max(100, "Invalid age"),
   heightCm: z.coerce.number().min(100, "Invalid height").max(250, "Invalid height"),
@@ -23,6 +24,22 @@ const signupSchema = z.object({
 });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (
+    error &&
+    typeof error === "object" &&
+    "data" in error &&
+    error.data &&
+    typeof error.data === "object" &&
+    "error" in error.data &&
+    typeof (error.data as { error?: unknown }).error === "string"
+  ) {
+    return (error.data as { error: string }).error;
+  }
+
+  return fallback;
+}
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,22 +51,27 @@ export default function Signup() {
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: "", email: "", password: "", age: undefined, heightCm: undefined, weightKg: undefined },
+    defaultValues: { name: "", email: "", phoneNumber: "", password: "", age: undefined, heightCm: undefined, weightKg: undefined },
   });
 
   const onSubmit = (data: SignupFormValues) => {
+    const payload = {
+      ...data,
+      phoneNumber: data.phoneNumber?.trim() ? data.phoneNumber.trim() : undefined,
+    };
+
     signupMutation.mutate(
-      { data },
+      { data: payload },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
-          toast({ title: "Account created!", description: "Welcome to GlowCycle." });
-          setLocation("/dashboard");
+          toast({ title: "OTP sent", description: "Check your email to verify your account." });
+          setLocation(`/signup/verify?email=${encodeURIComponent(payload.email)}`);
         },
         onError: (error) => {
           toast({ 
             title: "Signup failed", 
-            description: error?.error || "Could not create account", 
+            description: getApiErrorMessage(error, "Could not create account"), 
             variant: "destructive" 
           });
         },
@@ -99,6 +121,19 @@ export default function Signup() {
                       <FormLabel className="text-muted-foreground font-medium">Email</FormLabel>
                       <FormControl>
                         <Input placeholder="hello@example.com" className="h-12 rounded-xl bg-background/50" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground font-medium">Phone Number <span className="text-xs">(optional)</span></FormLabel>
+                      <FormControl>
+                        <Input placeholder="+91 98765 43210" className="h-12 rounded-xl bg-background/50" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -180,7 +215,7 @@ export default function Signup() {
                   className="w-full h-12 rounded-xl text-lg font-medium shadow-lg shadow-primary/20 hover-elevate mt-6" 
                   disabled={signupMutation.isPending}
                 >
-                  {signupMutation.isPending ? "Creating account..." : "Sign Up"}
+                  {signupMutation.isPending ? "Sending OTP..." : "Sign Up"}
                 </Button>
               </form>
             </Form>
