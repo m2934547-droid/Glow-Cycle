@@ -10,11 +10,12 @@
     "db:push": "node ./scripts/db-push.mjs",
     "db:push:force": "node ./scripts/db-push.mjs --force",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "render:build": "corepack pnpm install --frozen-lockfile && corepack pnpm --filter @workspace/glowcycle run build && corepack pnpm --filter @workspace/api-server run build",
+    "render:build": "corepack prepare pnpm@10.22.0 --activate && pnpm install --frozen-lockfile && pnpm --filter @workspace/glowcycle run build && pnpm --filter @workspace/api-server run build",
     "render:start": "node ./artifacts/api-server/dist/index.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
+  "packageManager": "pnpm@10.22.0",
   "private": true,
   "devDependencies": {
     "pnpm": "10.22.0",
