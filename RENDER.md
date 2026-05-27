@@ -1,48 +1,58 @@
-# Deploy Glow-Cycle on Render
+# Render Manual Deploy (Single Web Service)
 
-This repo is configured for a single Render web service that serves:
+Use this when you want to create Render services manually (no Blueprint import).
 
-- frontend SPA (`artifacts/glowcycle/dist/public`)
-- backend API (`/api/*`)
-
-## 1) Push your code
-
-Push this repository to GitHub/GitLab.
-
-## 2) Create services from blueprint
+## 1) Create PostgreSQL database
 
 In Render:
 
-1. `New` -> `Blueprint`
-2. Select this repo
-3. Render will read [`render.yaml`](./render.yaml)
-4. It creates:
-   - web service: `glow-cycle`
-   - postgres database: `glow-cycle-db`
+1. `New` -> `PostgreSQL`
+2. Name: `glow-cycle-db` (any name is fine)
+3. Create DB
+4. Copy its `External Database URL` (or Internal URL if same region/app setup supports it)
 
-## 3) Set required secrets
+## 2) Create one Web Service
 
-In the `glow-cycle` web service environment:
+In Render:
 
-- `SMTP_EMAIL`
-- `SMTP_PASSWORD`
+1. `New` -> `Web Service`
+2. Connect your repo
+3. Runtime: `Node`
+4. Branch: `main` (or your deploy branch)
 
-`SESSION_SECRET` is generated automatically.
+Set commands:
 
-## 4) Deploy
+- Build Command: `corepack pnpm run render:build`
+- Start Command: `corepack pnpm run render:start`
 
-Render build/start commands are already set:
+Set health check:
 
-- Build: `corepack pnpm run render:build`
-- Start: `corepack pnpm run render:start`
+- Health Check Path: `/api/healthz`
 
-## 5) Verify
+## 3) Add environment variables (Web Service)
 
-- API health: `https://<your-render-domain>/api/healthz`
-- App: `https://<your-render-domain>/`
+Add these in Render -> Web Service -> `Environment`:
+
+- `NODE_VERSION=24.15.0`
+- `NODE_ENV=production`
+- `PORT=10000`
+- `API_PORT=10000`
+- `BASE_PATH=/`
+- `OTP_EXPIRE_MINUTES=5`
+- `SESSION_SECRET=<long-random-secret>`
+- `DATABASE_URL=<your-render-postgres-url>`
+- `SMTP_EMAIL=<your-gmail-address>`
+- `SMTP_PASSWORD=<your-gmail-app-password>`
+
+## 4) Deploy and verify
+
+After deploy completes:
+
+- App: `https://<your-service>.onrender.com/`
+- API health: `https://<your-service>.onrender.com/api/healthz`
 
 ## Notes
 
-- `NODE_ENV=production` is set in `render.yaml`.
-- Backend bootstraps DB schema on startup using `DATABASE_URL`.
-- OTP emails require valid Gmail SMTP app-password credentials.
+- Production backend serves the built frontend from the same service.
+- Session cookies work behind Render proxy (`trust proxy` is enabled in production).
+- Database schema is bootstrapped on server startup.

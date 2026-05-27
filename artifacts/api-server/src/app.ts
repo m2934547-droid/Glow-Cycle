@@ -34,6 +34,10 @@ app.use(express.urlencoded({ extended: true }));
 
 const sessionSecret = process.env.SESSION_SECRET ?? "glowcycle-dev-secret-key-change-in-prod";
 
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 app.use(
   session({
     secret: sessionSecret,
