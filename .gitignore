@@ -52,3 +52,10 @@ Thumbs.db
 # local env
 .env
 .env.local
+
+# Python/local runner artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
