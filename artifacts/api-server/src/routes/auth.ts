@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, usersTable } from "@workspace/db";
 import { LoginBody, SignupBody } from "@workspace/api-zod";
-import { sendOtpEmail } from "../lib/email";
+import { EmailDeliveryError, sendOtpEmail } from "../lib/email";
 import { issueOtp, maskEmail, normalizeEmail, OtpError, verifyOtp } from "../lib/otp";
 import { hashPassword, verifyPassword } from "../lib/password";
 import { logger } from "../lib/logger";
@@ -124,7 +124,12 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
       return;
     }
     logger.error({ err: error, email: maskEmail(email) }, "Failed to issue signup OTP");
-    res.status(500).json({ error: "Could not send OTP right now. Please try again." });
+    res.status(500).json({
+      error:
+        error instanceof EmailDeliveryError && process.env.NODE_ENV !== "production"
+          ? error.message
+          : "Could not send OTP right now. Please try again.",
+    });
     return;
   }
 
@@ -162,7 +167,12 @@ router.post("/auth/signup/resend-otp", async (req, res): Promise<void> => {
       res.status(429).json({ error: message });
       return;
     }
-    res.status(500).json({ error: "Could not resend OTP right now." });
+    res.status(500).json({
+      error:
+        error instanceof EmailDeliveryError && process.env.NODE_ENV !== "production"
+          ? error.message
+          : "Could not resend OTP right now.",
+    });
     return;
   }
 

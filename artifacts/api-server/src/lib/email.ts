@@ -2,6 +2,16 @@ import { logger } from "./logger";
 
 const EMAILJS_SEND_URL = "https://api.emailjs.com/api/v1.0/email/send";
 
+export class EmailDeliveryError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "EmailDeliveryError";
+    this.status = status;
+  }
+}
+
 function readEnv(...keys: string[]): string | undefined {
   for (const key of keys) {
     const value = process.env[key];
@@ -44,25 +54,30 @@ export async function sendOtpEmail(params: {
     return;
   }
 
+  const requestBody: Record<string, unknown> = {
+    service_id: config.serviceId,
+    template_id: config.templateId,
+    user_id: config.publicKey,
+    template_params: {
+      to_email: params.to,
+      email: params.to,
+      user_email: params.to,
+      otp: params.otp,
+      code: params.otp,
+      passcode: params.otp,
+      flow_label: params.flowLabel,
+      expire_minutes: params.expireMinutes,
+    },
+  };
+
+  if (config.privateKey) {
+    requestBody.accessToken = config.privateKey;
+  }
+
   const response = await fetch(EMAILJS_SEND_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      service_id: config.serviceId,
-      template_id: config.templateId,
-      user_id: config.publicKey,
-      accessToken: config.privateKey,
-      template_params: {
-        to_email: params.to,
-        email: params.to,
-        user_email: params.to,
-        otp: params.otp,
-        code: params.otp,
-        passcode: params.otp,
-        flow_label: params.flowLabel,
-        expire_minutes: params.expireMinutes,
-      },
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
@@ -71,6 +86,6 @@ export async function sendOtpEmail(params: {
       { status: response.status, body: message },
       "EmailJS OTP email request failed",
     );
-    throw new Error("Could not send OTP email.");
+    throw new EmailDeliveryError(message || "Could not send OTP email.", response.status);
   }
 }
