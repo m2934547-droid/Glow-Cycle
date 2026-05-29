@@ -24,11 +24,13 @@ type VerifyFormValues = z.infer<typeof verifySchema>;
 const RESEND_SECONDS = 60;
 
 export default function SignupVerify() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const [cooldownUntil, setCooldownUntil] = useState(Date.now() + RESEND_SECONDS * 1000);
   const [now, setNow] = useState(Date.now());
-  const [, query = ""] = location.split("?");
-  const email = useMemo(() => new URLSearchParams(query).get("email") ?? "", [query]);
+  const email = useMemo(
+    () => new URLSearchParams(window.location.search).get("email") ?? "",
+    [],
+  );
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const verifyMutation = useSignupVerifyOtp();

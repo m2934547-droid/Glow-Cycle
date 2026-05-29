@@ -36,9 +36,11 @@ type ResetFormValues = z.infer<typeof resetSchema>;
 const RESEND_SECONDS = 60;
 
 export default function ResetPasswordVerify() {
-  const [location, setLocation] = useLocation();
-  const [, query = ""] = location.split("?");
-  const email = useMemo(() => new URLSearchParams(query).get("email") ?? "", [query]);
+  const [, setLocation] = useLocation();
+  const email = useMemo(
+    () => new URLSearchParams(window.location.search).get("email") ?? "",
+    [],
+  );
   const [step, setStep] = useState<"otp" | "password">("otp");
   const [showPassword, setShowPassword] = useState(false);
   const [cooldownUntil, setCooldownUntil] = useState(Date.now() + RESEND_SECONDS * 1000);
