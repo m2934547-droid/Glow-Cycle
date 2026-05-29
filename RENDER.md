@@ -41,8 +41,10 @@ Add these in Render -> Web Service -> `Environment`:
 - `OTP_EXPIRE_MINUTES=5`
 - `SESSION_SECRET=<long-random-secret>`
 - `DATABASE_URL=<your-render-postgres-url>`
-- `SMTP_EMAIL=<your-gmail-address>`
-- `SMTP_PASSWORD=<your-gmail-app-password>`
+- `EMAILJS_SERVICE_ID=<your-emailjs-service-id>`
+- `EMAILJS_TEMPLATE_ID=<your-emailjs-template-id>`
+- `EMAILJS_PUBLIC_KEY=<your-emailjs-public-key>`
+- `EMAILJS_PRIVATE_KEY=<your-emailjs-private-key>` (optional, but recommended if enabled in EmailJS)
 
 ## 4) Deploy and verify
 
@@ -56,3 +58,4 @@ After deploy completes:
 - Production backend serves the built frontend from the same service.
 - Session cookies work behind Render proxy (`trust proxy` is enabled in production).
 - Database schema is bootstrapped on server startup.
+- EmailJS templates should include variables such as `to_email`, `otp`, `flow_label`, and `expire_minutes`.
