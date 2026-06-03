@@ -1,16 +1,134 @@
 import { Link, useLocation } from "wouter";
+import { useState } from "react";
 import { useGetMe, useLogout, useGetCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList } from "lucide-react";
+import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, ChevronDown, Bell, Paintbrush2, Languages, Shield, LifeBuoy, ChartColumnBig, History, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Footer } from "@/components/footer";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+function ProfileDropdown({
+  open,
+  onOpenChange,
+  onLogout,
+  onViewProfile,
+  name,
+  email,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onLogout: () => void;
+  onViewProfile: () => void;
+  name: string;
+  email: string;
+}) {
+  const menuItemClassName =
+    "group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-[#4A2C3A] transition-all duration-200 hover:bg-[#FFF0F6] hover:text-[#FF5CA8] hover:translate-x-0.5 focus:bg-[#FFF0F6] focus:text-[#FF5CA8]";
+
+  return (
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex items-center gap-2 px-2.5 lg:px-3 xl:px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shrink-0 border",
+            open
+              ? "bg-[#FF5CA8] text-white border-[#FF5CA8] shadow-[0_10px_24px_rgba(255,92,168,0.24)]"
+              : "text-muted-foreground border-transparent hover:bg-primary/10 hover:text-primary hover:border-primary/20"
+          )}
+        >
+          <User className="h-4 w-4 shrink-0" />
+          <span className="hidden xl:inline">Profile</span>
+          <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200 hidden xl:inline", open && "rotate-180")} />
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align="end"
+        sideOffset={14}
+        className="w-[320px] overflow-hidden rounded-[20px] border border-[#FFEAF3] bg-white p-0 shadow-[0_24px_60px_rgba(255,92,168,0.16)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:slide-in-from-top-2 data-[state=closed]:slide-out-to-top-2"
+      >
+        <div className="border-b border-[#FFEAF3] p-5">
+          <div className="flex items-center gap-4">
+            <div className="relative h-14 w-14 shrink-0 rounded-full bg-gradient-to-br from-[#FF5CA8] to-[#FFEAF3] p-[2px] shadow-[0_8px_20px_rgba(255,92,168,0.18)]">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#FF5CA8]">
+                <UserCircle2 className="h-8 w-8" />
+              </div>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-serif text-[18px] font-semibold text-[#4A2C3A]">{name}</p>
+              <p className="truncate text-sm text-[#8B6F7D]">{email}</p>
+            </div>
+          </div>
+
+          <Link
+            href="/profile"
+            onClick={onViewProfile}
+            className="mt-4 flex h-10 w-full items-center justify-center rounded-full border border-[#FFEAF3] bg-[#FFF0F6] text-sm font-medium text-[#FF5CA8] shadow-none transition-colors duration-200 hover:bg-[#FFEAF3] hover:text-[#FF5CA8]"
+          >
+            View Profile
+          </Link>
+        </div>
+
+        <div className="p-2">
+          <DropdownMenuItem className={menuItemClassName} onSelect={onViewProfile}>
+            <ChartColumnBig className="h-4 w-4 text-[#FF5CA8]" />
+            <span>My Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
+            <History className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Wellness Reports</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
+            <User className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Cycle History</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator className="my-2 bg-[#FFEAF3]" />
+
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
+            <Bell className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Notifications</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
+            <Paintbrush2 className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Appearance</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
+            <Languages className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Language</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
+            <Shield className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Privacy Settings</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator className="my-2 bg-[#FFEAF3]" />
+
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
+            <LifeBuoy className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Help & Support</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={cn(menuItemClassName, "text-[#FF5CA8]")}
+            onSelect={onLogout}
+          >
+            <LogOut className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Logout</span>
+          </DropdownMenuItem>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { data: user } = useGetMe();
   const logoutMutation = useLogout();
   const queryClient = useQueryClient();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { data: cart } = useGetCart({ query: { enabled: !!user, queryKey: getGetCartQueryKey() } });
 
   const handleLogout = () => {
@@ -20,6 +138,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         setLocation("/");
       },
     });
+  };
+
+  const handleViewProfile = () => {
+    setProfileMenuOpen(false);
+    setLocation("/profile");
   };
 
   const userNavItems = [
@@ -93,9 +216,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                 )}
 
-                <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0">
-                  <LogOut className="h-5 w-5" />
-                </Button>
+                <ProfileDropdown
+                  open={profileMenuOpen}
+                  onOpenChange={setProfileMenuOpen}
+                  onLogout={handleLogout}
+                  onViewProfile={handleViewProfile}
+                  name={user?.name ?? "Manu"}
+                  email={user?.email ?? "manujotkaur5267@gmail.com"}
+                />
               </>
             ) : (
               <div className="flex items-center gap-3 sm:gap-4">
