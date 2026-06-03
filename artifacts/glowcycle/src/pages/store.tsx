@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useGetProducts, useAddToCart, getGetProductsQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useGetProducts, useAddToCart, useGetCart, getGetProductsQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ShoppingBag, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,11 +23,13 @@ const CATEGORIES = [
 
 export default function Store() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isCartOpen, setIsCartOpen] = useState(false);
   
   const queryParams = selectedCategory === "all" ? undefined : { category: selectedCategory };
   const { data: products, isLoading } = useGetProducts(queryParams, { 
     query: { queryKey: getGetProductsQueryKey(queryParams) } 
   });
+  const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey() } });
   
   const addToCartMutation = useAddToCart();
   const queryClient = useQueryClient();
@@ -38,7 +41,8 @@ export default function Store() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-          toast({ title: "Added to cart", description: "Item has been added to your cart." });
+          setIsCartOpen(true);
+          toast({ title: "Added to cart", description: "Side cart opened." });
         },
         onError: () => {
           toast({ title: "Error", description: "Could not add item to cart.", variant: "destructive" });
@@ -160,6 +164,56 @@ export default function Store() {
           ))}
         </div>
       )}
+
+      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0">
+          <div className="h-full flex flex-col">
+            <SheetHeader className="border-b border-border px-6 py-5 text-left">
+              <SheetTitle className="font-serif text-2xl">Your Side Cart</SheetTitle>
+              <SheetDescription>Review the products you just added.</SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              {cart?.items?.length ? (
+                cart.items.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+                      {item.product.imageUrl ? (
+                        <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <ShoppingBag className="h-6 w-6 text-muted-foreground/40" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground">{item.product.name}</p>
+                      <p className="text-sm text-muted-foreground">Qty {item.quantity}</p>
+                      <p className="text-sm font-semibold text-primary">₹{(item.product.price * item.quantity).toFixed(0)}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex h-60 flex-col items-center justify-center text-center text-muted-foreground">
+                  <ShoppingBag className="h-10 w-10 text-primary/25" />
+                  <p className="mt-3 font-medium text-foreground">Your cart is empty</p>
+                  <p className="text-sm">Add a product to see it here.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-border p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total</span>
+                <span className="text-lg font-bold text-primary">₹{cart?.total?.toFixed(0) ?? "0"}</span>
+              </div>
+              <Button className="w-full rounded-xl h-12" onClick={() => setIsCartOpen(false)}>
+                Continue Shopping
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
