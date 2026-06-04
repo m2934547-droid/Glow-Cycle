@@ -1,12 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
-import { useGetMe, useLogout, useGetCart, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, ChevronDown, Bell, Paintbrush2, Languages, Shield, LifeBuoy, ChartColumnBig, History, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Footer } from "@/components/footer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useCartDrawer } from "@/components/cart-drawer";
 
 function ProfileDropdown({
   open,
@@ -129,7 +130,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logoutMutation = useLogout();
   const queryClient = useQueryClient();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const { data: cart } = useGetCart({ query: { enabled: !!user, queryKey: getGetCartQueryKey() } });
+  const { openCart, cartItemCount } = useCartDrawer();
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -165,8 +166,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = user?.isAdmin ? adminNavItems : userNavItems;
   const showCart = !user?.isAdmin;
-
-  const cartItemCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background text-foreground">
@@ -206,14 +205,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div className="h-6 w-px bg-border mx-1 lg:mx-2" />
 
                 {showCart && (
-                  <Link href="/cart" className="relative p-2 text-muted-foreground hover:text-primary transition-colors shrink-0">
+                  <button
+                    type="button"
+                    onClick={openCart}
+                    className="relative p-2 text-muted-foreground transition-colors hover:text-primary shrink-0"
+                    aria-label="Open cart drawer"
+                  >
                     <ShoppingBag className="h-5 w-5" />
                     {cartItemCount > 0 && (
                       <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
                         {cartItemCount}
                       </span>
                     )}
-                  </Link>
+                  </button>
                 )}
 
                 <ProfileDropdown
@@ -242,14 +246,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <>
                 {showCart && (
-                  <Link href="/cart" className="relative p-2 text-muted-foreground hover:text-primary transition-colors">
+                  <button
+                    type="button"
+                    onClick={openCart}
+                    className="relative p-2 text-muted-foreground transition-colors hover:text-primary"
+                    aria-label="Open cart drawer"
+                  >
                     <ShoppingBag className="h-5 w-5" />
                     {cartItemCount > 0 && (
                       <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
                         {cartItemCount}
                       </span>
                     )}
-                  </Link>
+                  </button>
                 )}
                 <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                   <LogOut className="h-5 w-5" />

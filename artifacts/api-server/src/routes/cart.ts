@@ -62,11 +62,19 @@ router.post("/cart", async (req, res): Promise<void> => {
     .where(and(eq(cartItemsTable.userId, userId), eq(cartItemsTable.productId, productId)));
 
   if (existing.length > 0) {
-    await db
-      .update(cartItemsTable)
-      .set({ quantity: existing[0].quantity + quantity })
-      .where(eq(cartItemsTable.id, existing[0].id));
-  } else {
+    const nextQuantity = existing[0].quantity + quantity;
+
+    if (nextQuantity <= 0) {
+      await db
+        .delete(cartItemsTable)
+        .where(eq(cartItemsTable.id, existing[0].id));
+    } else {
+      await db
+        .update(cartItemsTable)
+        .set({ quantity: nextQuantity })
+        .where(eq(cartItemsTable.id, existing[0].id));
+    }
+  } else if (quantity > 0) {
     await db.insert(cartItemsTable).values({ userId, productId, quantity });
   }
 
