@@ -23,6 +23,10 @@ const resetPasswordSchema = z.object({
   email: z.string().email(),
   newPassword: z.string().min(6),
 });
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(6),
+  newPassword: z.string().min(6),
+});
 
 function sessionData(req: Request) {
   return req.session as unknown as Record<string, unknown>;
@@ -323,6 +327,37 @@ router.post("/auth/reset-password", async (req, res): Promise<void> => {
   delete sessionData(req)[RESET_SESSION_KEY];
 
   res.json({ message: "Password reset successfully. You can now log in." });
+});
+
+router.post("/auth/change-password", async (req, res): Promise<void> => {
+  const userId = sessionData(req).userId as number | undefined;
+  if (!userId) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) {
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+
+  const matches = await verifyPassword(parsed.data.currentPassword, user.passwordHash);
+  if (!matches) {
+    res.status(400).json({ error: "Current password is incorrect." });
+    return;
+  }
+
+  const passwordHash = await hashPassword(parsed.data.newPassword);
+  await db.update(usersTable).set({ passwordHash }).where(eq(usersTable.id, user.id));
+
+  res.json({ message: "Password updated successfully." });
 });
 
 export { formatUser, computeBmi, getBmiCategory };

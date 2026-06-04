@@ -75,7 +75,7 @@ export default function Profile() {
         <div>
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground flex items-center gap-3">
             <User className="h-8 w-8 text-primary" />
-            Your Profile
+            My Profile
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">Manage your personal information and health data.</p>
         </div>
@@ -86,39 +86,44 @@ export default function Profile() {
           <CardHeader className="bg-primary/5 border-b border-primary/10 pb-6">
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-2xl font-serif">User Information</CardTitle>
-                <CardDescription className="mt-1">A quick snapshot of your GlowCycle profile.</CardDescription>
+                <CardTitle className="text-2xl font-serif">My Profile</CardTitle>
+                <CardDescription className="mt-1">Personal information and partner information at a glance.</CardDescription>
               </div>
               <div className="bg-background rounded-full p-3 shadow-sm text-primary">
                 <User className="h-6 w-6" />
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-background/60 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Name</p>
-              <p className="mt-2 text-base font-medium text-foreground">{user?.name ?? "Not available"}</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-background/60 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</p>
-              <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
-                <Mail className="h-4 w-4 text-primary" />
-                <span className="truncate">{user?.email ?? "Not available"}</span>
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border bg-background/60 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Phone</p>
-              <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
-                <Phone className="h-4 w-4 text-primary" />
-                <span>{user?.phoneNumber ?? "Not available"}</span>
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border bg-background/60 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Age</p>
-              <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
-                <CalendarDays className="h-4 w-4 text-primary" />
-                <span>{user?.age ?? "Not available"} years</span>
-              </p>
+          <CardContent className="pt-6 space-y-6">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Personal Information</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-border bg-background/60 p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Name</p>
+                  <p className="mt-2 text-base font-medium text-foreground">{user?.name ?? "Not available"}</p>
+                </div>
+                <div className="rounded-2xl border border-border bg-background/60 p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</p>
+                  <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+                    <Mail className="h-4 w-4 text-primary" />
+                    <span className="truncate">{user?.email ?? "Not available"}</span>
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border bg-background/60 p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Phone</p>
+                  <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <span>{user?.phoneNumber ?? "Not available"}</span>
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border bg-background/60 p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Age</p>
+                  <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+                    <CalendarDays className="h-4 w-4 text-primary" />
+                    <span>{user?.age ?? "Not available"} years</span>
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

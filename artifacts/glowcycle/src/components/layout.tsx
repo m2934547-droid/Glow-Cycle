@@ -2,11 +2,12 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, Bell, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, History, UserCircle2, Mail, Phone } from "lucide-react";
+import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, Bell, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, UserCircle2, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Footer } from "@/components/footer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useCartDrawer } from "@/components/cart-drawer";
 
 function ProfileDropdown({
@@ -15,6 +16,7 @@ function ProfileDropdown({
   onLogout,
   onViewProfile,
   onNavigate,
+  onHelpSupport,
   name,
   email,
 }: {
@@ -23,6 +25,7 @@ function ProfileDropdown({
   onLogout: () => void;
   onViewProfile: () => void;
   onNavigate: (href: string) => void;
+  onHelpSupport: () => void;
   name: string;
   email: string;
 }) {
@@ -35,15 +38,15 @@ function ProfileDropdown({
         <button
           type="button"
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 shrink-0",
+            "flex h-10 w-10 items-center justify-center rounded-full border bg-white text-[#4A2C3A] shadow-sm transition-all duration-200 shrink-0",
             open
-              ? "bg-[#FF5CA8] text-white border-[#FF5CA8] shadow-[0_10px_24px_rgba(255,92,168,0.24)]"
-              : "text-muted-foreground border-transparent hover:bg-primary/10 hover:text-primary hover:border-primary/20"
+              ? "border-[#F3DCE7] shadow-[0_10px_24px_rgba(255,92,168,0.10)]"
+              : "border-[#F3DCE7] hover:border-[#FF5CA8]/30 hover:text-[#FF5CA8]"
           )}
           aria-label="Open profile menu"
           title="Open profile menu"
         >
-          <UserCircle2 className="h-5 w-5 shrink-0" />
+          <UserCircle2 className="h-5 w-5 shrink-0 text-[#8B6F7D]" />
         </button>
       </DropdownMenuTrigger>
 
@@ -68,7 +71,7 @@ function ProfileDropdown({
           <Link
             href="/profile"
             onClick={onViewProfile}
-            className="mt-4 flex h-10 w-full items-center justify-center rounded-full border border-[#FFEAF3] bg-[#FFF0F6] text-sm font-medium text-[#FF5CA8] shadow-none transition-colors duration-200 hover:bg-[#FFEAF3] hover:text-[#FF5CA8]"
+            className="mt-4 flex h-10 w-full items-center justify-center rounded-full border border-[#F3DCE7] bg-white text-sm font-medium text-[#3D2A34] shadow-sm transition-colors duration-200 hover:border-[#FF5CA8]/30 hover:text-[#FF5CA8]"
           >
             My Profile
           </Link>
@@ -79,16 +82,6 @@ function ProfileDropdown({
             <ChartColumnBig className="h-4 w-4 text-[#FF5CA8]" />
             <span>Profile Overview</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
-            <History className="h-4 w-4 text-[#FF5CA8]" />
-            <span>Wellness Reports</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
-            <User className="h-4 w-4 text-[#FF5CA8]" />
-            <span>Cycle History</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator className="my-2 bg-[#FFEAF3]" />
 
           <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
             <Bell className="h-4 w-4 text-[#FF5CA8]" />
@@ -98,31 +91,17 @@ function ProfileDropdown({
             <UserPlus className="h-4 w-4 text-[#FF5CA8]" />
             <span>Add Partner</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onNavigate("/forgot-password")}>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onNavigate("/update-password")}>
             <KeyRound className="h-4 w-4 text-[#FF5CA8]" />
             <span>Update Password</span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator className="my-2 bg-[#FFEAF3]" />
 
-          <div className="rounded-2xl border border-[#FFEAF3] bg-[#FFF7FB] px-3 py-3">
-            <div className="flex items-start gap-3">
-              <LifeBuoy className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5CA8]" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-[#4A2C3A]">Help & Support</p>
-                <p className="mt-1 flex items-center gap-2 text-xs text-[#8B6F7D]">
-                  <Phone className="h-3.5 w-3.5 shrink-0 text-[#FF5CA8]" />
-                  <span>6239592150</span>
-                </p>
-                <p className="mt-1 flex items-center gap-2 text-xs text-[#8B6F7D]">
-                  <Mail className="h-3.5 w-3.5 shrink-0 text-[#FF5CA8]" />
-                  <span>m2934547@gmail.com</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <DropdownMenuSeparator className="my-2 bg-[#FFEAF3]" />
+          <DropdownMenuItem className={menuItemClassName} onSelect={onHelpSupport}>
+            <LifeBuoy className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Help & Support</span>
+          </DropdownMenuItem>
 
           <DropdownMenuItem
             className={cn(menuItemClassName, "text-[#FF5CA8]")}
@@ -143,6 +122,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logoutMutation = useLogout();
   const queryClient = useQueryClient();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const { openCart, cartItemCount } = useCartDrawer();
 
   const handleLogout = () => {
@@ -162,6 +142,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const handleNavigate = (href: string) => {
     setProfileMenuOpen(false);
     setLocation(href);
+  };
+
+  const handleHelpSupport = () => {
+    setProfileMenuOpen(false);
+    setSupportOpen(true);
   };
 
   const userNavItems = [
@@ -244,6 +229,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   onLogout={handleLogout}
                   onViewProfile={handleViewProfile}
                   onNavigate={handleNavigate}
+                  onHelpSupport={handleHelpSupport}
                   name={user?.name ?? "Manu"}
                   email={user?.email ?? "manujotkaur5267@gmail.com"}
                 />
@@ -299,6 +285,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       <Footer />
+
+      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
+        <DialogContent className="rounded-[24px] border-[#F3DCE7] bg-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl text-[#3D2A34]">Help & Support</DialogTitle>
+            <DialogDescription className="text-[#8B6F7D]">
+              Contact GlowCycle support using the details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="rounded-2xl border border-[#F3DCE7] bg-[#FFF7FB] p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#8B6F7D]">Phone</p>
+              <p className="mt-2 flex items-center gap-2 text-sm font-medium text-[#3D2A34]">
+                <Phone className="h-4 w-4 text-[#FF5CA8]" />
+                <span>6239592150</span>
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[#F3DCE7] bg-[#FFF7FB] p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#8B6F7D]">Email</p>
+              <p className="mt-2 flex items-center gap-2 text-sm font-medium text-[#3D2A34]">
+                <Mail className="h-4 w-4 text-[#FF5CA8]" />
+                <span>m2934547@gmail.com</span>
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Mobile Bottom Nav */}
       {user && (

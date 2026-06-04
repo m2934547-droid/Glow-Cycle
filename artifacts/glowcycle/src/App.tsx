@@ -23,6 +23,7 @@ import AdminConsultants from "@/pages/admin-consultants";
 import Consultants from "@/pages/consultants";
 import Orders from "@/pages/orders";
 import ForgotPassword from "@/pages/forgot-password";
+import UpdatePassword from "@/pages/update-password";
 import SignupVerify from "@/pages/signup-verify";
 import ResetPasswordVerify from "@/pages/reset-password-verify";
 import { Redirect } from "wouter";
@@ -74,6 +75,9 @@ function Router() {
         </Route>
         <Route path="/orders">
           <ProtectedRoute><Orders /></ProtectedRoute>
+        </Route>
+        <Route path="/update-password">
+          <ProtectedRoute><UpdatePassword /></ProtectedRoute>
         </Route>
         <Route path="/forgot-password" component={ForgotPassword} />
         <Route path="/reset-password/verify" component={ResetPasswordVerify} />
