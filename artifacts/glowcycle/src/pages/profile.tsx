@@ -9,11 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, Activity, CheckCircle2, LogOut } from "lucide-react";
+import { User, Activity, CheckCircle2, Mail, Phone, CalendarDays } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
-import { useLocation } from "wouter";
 import { PartnersSection } from "@/components/partners-section";
 
 const profileSchema = z.object({
@@ -30,7 +29,6 @@ export default function Profile() {
   const updateProfileMutation = useUpdateProfile();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -55,15 +53,6 @@ export default function Profile() {
     });
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    } catch {}
-    queryClient.clear();
-    navigate("/");
-    window.location.reload();
-  };
-
   const getBmiColor = (category?: string) => {
     if (!category) return "bg-muted text-muted-foreground";
     if (category.toLowerCase().includes("normal")) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200";
@@ -82,7 +71,7 @@ export default function Profile() {
 
   return (
     <div className="max-w-2xl mx-auto pb-10 space-y-8">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start">
         <div>
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground flex items-center gap-3">
             <User className="h-8 w-8 text-primary" />
@@ -90,17 +79,60 @@ export default function Profile() {
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">Manage your personal information and health data.</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleLogout}
-          className="gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive mt-1 shrink-0"
-        >
-          <LogOut className="h-4 w-4" />
-          Log Out
-        </Button>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Card className="rounded-[2rem] border-primary/10 shadow-lg overflow-hidden bg-card/80 backdrop-blur-xl">
+          <CardHeader className="bg-primary/5 border-b border-primary/10 pb-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-2xl font-serif">User Information</CardTitle>
+                <CardDescription className="mt-1">A quick snapshot of your GlowCycle profile.</CardDescription>
+              </div>
+              <div className="bg-background rounded-full p-3 shadow-sm text-primary">
+                <User className="h-6 w-6" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-background/60 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Name</p>
+              <p className="mt-2 text-base font-medium text-foreground">{user?.name ?? "Not available"}</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-background/60 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</p>
+              <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+                <Mail className="h-4 w-4 text-primary" />
+                <span className="truncate">{user?.email ?? "Not available"}</span>
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-background/60 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Phone</p>
+              <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+                <Phone className="h-4 w-4 text-primary" />
+                <span>{user?.phoneNumber ?? "Not available"}</span>
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-background/60 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Age</p>
+              <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+                <CalendarDays className="h-4 w-4 text-primary" />
+                <span>{user?.age ?? "Not available"} years</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div id="partner-information" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <div className="mb-4">
+          <h2 className="text-2xl font-serif font-semibold text-foreground">Partner Information</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Add trusted partners below your personal details.</p>
+        </div>
+        <PartnersSection />
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <Card className="rounded-[2rem] border-primary/10 shadow-lg overflow-hidden bg-card/80 backdrop-blur-xl">
           <CardHeader className="bg-primary/5 border-b border-primary/10 pb-6">
             <div className="flex justify-between items-start">
@@ -169,10 +201,6 @@ export default function Profile() {
             </Form>
           </CardContent>
         </Card>
-      </motion.div>
-
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <PartnersSection />
       </motion.div>
     </div>
   );

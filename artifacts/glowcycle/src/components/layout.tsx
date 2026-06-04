@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, ChevronDown, Bell, Paintbrush2, Languages, Shield, LifeBuoy, ChartColumnBig, History, UserCircle2 } from "lucide-react";
+import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, Bell, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, History, UserCircle2, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Footer } from "@/components/footer";
@@ -14,6 +14,7 @@ function ProfileDropdown({
   onOpenChange,
   onLogout,
   onViewProfile,
+  onNavigate,
   name,
   email,
 }: {
@@ -21,6 +22,7 @@ function ProfileDropdown({
   onOpenChange: (open: boolean) => void;
   onLogout: () => void;
   onViewProfile: () => void;
+  onNavigate: (href: string) => void;
   name: string;
   email: string;
 }) {
@@ -33,15 +35,15 @@ function ProfileDropdown({
         <button
           type="button"
           className={cn(
-            "flex items-center gap-2 px-2.5 lg:px-3 xl:px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shrink-0 border",
+            "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 shrink-0",
             open
               ? "bg-[#FF5CA8] text-white border-[#FF5CA8] shadow-[0_10px_24px_rgba(255,92,168,0.24)]"
               : "text-muted-foreground border-transparent hover:bg-primary/10 hover:text-primary hover:border-primary/20"
           )}
+          aria-label="Open profile menu"
+          title="Open profile menu"
         >
-          <User className="h-4 w-4 shrink-0" />
-          <span className="hidden xl:inline">Profile</span>
-          <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200 hidden xl:inline", open && "rotate-180")} />
+          <UserCircle2 className="h-5 w-5 shrink-0" />
         </button>
       </DropdownMenuTrigger>
 
@@ -68,14 +70,14 @@ function ProfileDropdown({
             onClick={onViewProfile}
             className="mt-4 flex h-10 w-full items-center justify-center rounded-full border border-[#FFEAF3] bg-[#FFF0F6] text-sm font-medium text-[#FF5CA8] shadow-none transition-colors duration-200 hover:bg-[#FFEAF3] hover:text-[#FF5CA8]"
           >
-            View Profile
+            My Profile
           </Link>
         </div>
 
         <div className="p-2">
           <DropdownMenuItem className={menuItemClassName} onSelect={onViewProfile}>
             <ChartColumnBig className="h-4 w-4 text-[#FF5CA8]" />
-            <span>My Profile</span>
+            <span>Profile Overview</span>
           </DropdownMenuItem>
           <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
             <History className="h-4 w-4 text-[#FF5CA8]" />
@@ -92,25 +94,36 @@ function ProfileDropdown({
             <Bell className="h-4 w-4 text-[#FF5CA8]" />
             <span>Notifications</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
-            <Paintbrush2 className="h-4 w-4 text-[#FF5CA8]" />
-            <span>Appearance</span>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onNavigate("/profile#partner-information")}>
+            <UserPlus className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Add Partner</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
-            <Languages className="h-4 w-4 text-[#FF5CA8]" />
-            <span>Language</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
-            <Shield className="h-4 w-4 text-[#FF5CA8]" />
-            <span>Privacy Settings</span>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onNavigate("/forgot-password")}>
+            <KeyRound className="h-4 w-4 text-[#FF5CA8]" />
+            <span>Update Password</span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator className="my-2 bg-[#FFEAF3]" />
 
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
-            <LifeBuoy className="h-4 w-4 text-[#FF5CA8]" />
-            <span>Help & Support</span>
-          </DropdownMenuItem>
+          <div className="rounded-2xl border border-[#FFEAF3] bg-[#FFF7FB] px-3 py-3">
+            <div className="flex items-start gap-3">
+              <LifeBuoy className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5CA8]" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-[#4A2C3A]">Help & Support</p>
+                <p className="mt-1 flex items-center gap-2 text-xs text-[#8B6F7D]">
+                  <Phone className="h-3.5 w-3.5 shrink-0 text-[#FF5CA8]" />
+                  <span>6239592150</span>
+                </p>
+                <p className="mt-1 flex items-center gap-2 text-xs text-[#8B6F7D]">
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-[#FF5CA8]" />
+                  <span>m2934547@gmail.com</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DropdownMenuSeparator className="my-2 bg-[#FFEAF3]" />
+
           <DropdownMenuItem
             className={cn(menuItemClassName, "text-[#FF5CA8]")}
             onSelect={onLogout}
@@ -144,6 +157,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const handleViewProfile = () => {
     setProfileMenuOpen(false);
     setLocation("/profile");
+  };
+
+  const handleNavigate = (href: string) => {
+    setProfileMenuOpen(false);
+    setLocation(href);
   };
 
   const userNavItems = [
@@ -225,6 +243,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   onOpenChange={setProfileMenuOpen}
                   onLogout={handleLogout}
                   onViewProfile={handleViewProfile}
+                  onNavigate={handleNavigate}
                   name={user?.name ?? "Manu"}
                   email={user?.email ?? "manujotkaur5267@gmail.com"}
                 />
@@ -260,9 +279,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     )}
                   </button>
                 )}
-                <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
-                  <LogOut className="h-5 w-5" />
-                </Button>
               </>
             ) : (
               <>
