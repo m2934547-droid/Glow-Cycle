@@ -157,7 +157,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/consultants", label: "Consultants", icon: Stethoscope },
     { href: "/store", label: "Store", icon: ShoppingBag },
     { href: "/orders", label: "Orders", icon: ClipboardList },
-    { href: "/profile", label: "Profile", icon: User },
   ];
 
   const adminNavItems = [

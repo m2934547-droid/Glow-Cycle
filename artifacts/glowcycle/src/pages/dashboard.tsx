@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SharedWithMe } from "@/components/shared-with-me";
 import { AdminStats } from "@/components/admin-stats";
+import { AdminOrderLocationPanel } from "@/components/order-location-panel";
 
 export default function Dashboard() {
   const { data: user, isLoading: isUserLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -66,7 +67,10 @@ export default function Dashboard() {
       </motion.div>
 
       {isAdmin ? (
-        <AdminStats />
+        <div className="space-y-8">
+          <AdminStats />
+          <AdminOrderLocationPanel />
+        </div>
       ) : (
         <>
       <SharedWithMe />
