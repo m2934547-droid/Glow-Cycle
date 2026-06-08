@@ -18,7 +18,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { OrderDeliveryTimeline } from "@/components/order-location-panel";
 
 type OrderLineItem = {
   productId: number;
@@ -110,7 +109,7 @@ export default function Orders() {
           Purchase <span className="text-primary">History</span>
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Your past orders, rating history, and delivery location updates.
+          Your past orders and rating history.
         </p>
       </motion.div>
 
@@ -200,9 +199,6 @@ export default function Orders() {
                     </div>
                   )}
 
-                  <div className="border-t border-border/40 px-4 py-4 sm:px-6">
-                    <OrderDeliveryTimeline orderId={order.orderId} createdAt={order.createdAt} />
-                  </div>
                 </CardContent>
               </Card>
             </motion.div>
