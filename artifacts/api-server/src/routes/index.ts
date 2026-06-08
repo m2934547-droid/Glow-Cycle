@@ -12,6 +12,10 @@ import partnersRouter from "./partners";
 import consultantsRouter from "./consultants";
 import ordersRouter from "./orders";
 import ratingsRouter from "./ratings";
+import geoRouter from "./geo";
+import addressesRouter from "./addresses";
+import storesRouter from "./stores";
+import trackingRouter from "./tracking";
 
 const router: IRouter = Router();
 
@@ -28,5 +32,9 @@ router.use(partnersRouter);
 router.use(consultantsRouter);
 router.use(ordersRouter);
 router.use(ratingsRouter);
+router.use(geoRouter);
+router.use(addressesRouter);
+router.use(storesRouter);
+router.use(trackingRouter);
 
 export default router;

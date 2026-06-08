@@ -76,4 +76,18 @@ export async function bootstrapAppData(): Promise<void> {
     );
     logger.info({ count: defaultProducts.length }, "Seeded default store products");
   }
+
+  const storeCountResult = await db.execute(`SELECT COUNT(*)::int AS count FROM stores`);
+  const storeCount = Number((storeCountResult.rows[0] as { count?: number } | undefined)?.count ?? 0);
+  if (storeCount === 0) {
+    await db.execute(`
+      INSERT INTO stores (name, address, latitude, longitude)
+      VALUES
+        ('GlowCycle Chandigarh Flagship', 'SCO 45, Sector 17, Chandigarh, India', 30.7398, 76.7829),
+        ('GlowCycle Mohali Studio', 'Phase 7, SAS Nagar, Mohali, Punjab, India', 30.7046, 76.7179),
+        ('GlowCycle Ludhiana Hub', 'Ferozepur Road, Ludhiana, Punjab, India', 30.9000, 75.8573),
+        ('GlowCycle Amritsar Care Point', 'Lawrence Road, Amritsar, Punjab, India', 31.6340, 74.8723)
+    `);
+    logger.info("Seeded store locator locations");
+  }
 }

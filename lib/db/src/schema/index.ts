@@ -9,3 +9,6 @@ export * from "./consultants";
 export * from "./orderItems";
 export * from "./productRatings";
 export * from "./passwordResetOtps";
+export * from "./addresses";
+export * from "./stores";
+export * from "./orderTrackingEvents";
