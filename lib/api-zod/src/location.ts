@@ -132,3 +132,12 @@ export const AdminOrderSearchResult = z.object({
 });
 
 export const AdminOrderSearchResponse = z.array(AdminOrderSearchResult);
+
+export const ChangePasswordBody = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+
+export const ChangePasswordResponse = z.object({
+  message: z.string(),
+});

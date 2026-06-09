@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
+import { getGetMeQueryKey, useChangePassword } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +24,9 @@ type UpdatePasswordValues = z.infer<typeof updatePasswordSchema>;
 export default function UpdatePassword() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
+  const changePasswordMutation = useChangePassword();
 
   const form = useForm<UpdatePasswordValues>({
     resolver: zodResolver(updatePasswordSchema),
@@ -35,22 +39,11 @@ export default function UpdatePassword() {
   const onSubmit = async (values: UpdatePasswordValues) => {
     setIsSaving(true);
     try {
-      const response = await fetch("/api/auth/change-password", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          currentPassword: values.currentPassword,
-          newPassword: values.newPassword,
-        }),
+      const payload = await changePasswordMutation.mutateAsync({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
       });
-
-      const payload = (await response.json().catch(() => ({}))) as { message?: string; error?: string };
-
-      if (!response.ok) {
-        throw new Error(payload.error || "Could not update password.");
-      }
-
+      await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
       toast({
         title: "Password updated",
         description: payload.message || "Your password was changed successfully.",
@@ -58,9 +51,22 @@ export default function UpdatePassword() {
       form.reset();
       setLocation("/profile");
     } catch (error) {
+      const message =
+        error &&
+        typeof error === "object" &&
+        "data" in error &&
+        error.data &&
+        typeof error.data === "object" &&
+        "error" in error.data &&
+        typeof (error.data as { error?: unknown }).error === "string"
+          ? (error.data as { error: string }).error
+          : error instanceof Error
+            ? error.message
+            : "Could not update password.";
+
       toast({
         title: "Update failed",
-        description: error instanceof Error ? error.message : "Could not update password.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -104,7 +110,12 @@ export default function UpdatePassword() {
                     <FormItem>
                       <FormLabel className="text-base">Current Password</FormLabel>
                       <FormControl>
-                        <Input type="password" className="h-12 rounded-xl bg-background/50" {...field} />
+                        <Input
+                          type="password"
+                          autoComplete="current-password"
+                          className="h-12 rounded-xl bg-background/50"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -118,7 +129,12 @@ export default function UpdatePassword() {
                     <FormItem>
                       <FormLabel className="text-base">New Password</FormLabel>
                       <FormControl>
-                        <Input type="password" className="h-12 rounded-xl bg-background/50" {...field} />
+                        <Input
+                          type="password"
+                          autoComplete="new-password"
+                          className="h-12 rounded-xl bg-background/50"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

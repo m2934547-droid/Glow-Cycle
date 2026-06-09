@@ -7,6 +7,8 @@ import {
   AddressParams,
   AdminOrderSearchQuery,
   AdminOrderSearchResponse,
+  ChangePasswordBody,
+  ChangePasswordResponse,
   CreateTrackingEventBody,
   GeoReverseQuery,
   GeoReverseResponse,
@@ -202,4 +204,35 @@ export function useGetAdminOrders<TData = Awaited<ReturnType<typeof getAdminOrde
   options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getAdminOrders>>, TError, TData>; request?: SecondParameter<typeof customFetch> },
 ) {
   return useQuery(getGetAdminOrdersQueryOptions<TData, TError>(query, options));
+}
+
+export const getChangePasswordUrl = () => `/api/auth/change-password`;
+export const changePassword = async (
+  data: zod.infer<typeof ChangePasswordBody>,
+  options?: RequestInit,
+): Promise<zod.infer<typeof ChangePasswordResponse>> => {
+  return fetchAndParse(
+    getChangePasswordUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
+      body: JSON.stringify(data),
+    },
+    ChangePasswordResponse,
+  );
+};
+
+export function useChangePassword<TContext = unknown>(
+  options?: UseMutationOptions<
+    Awaited<ReturnType<typeof changePassword>>,
+    Error,
+    zod.infer<typeof ChangePasswordBody>,
+    TContext
+  >,
+) {
+  return useMutation({
+    mutationFn: (data) => changePassword(data),
+    ...options,
+  });
 }
