@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Package, ShoppingBag, Star } from "lucide-react";
+import { Package, ShoppingBag, Star, MapPinned } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -145,7 +145,7 @@ export default function Orders() {
                       <Package className="h-5 w-5 text-primary" />
                       <span className="font-bold tracking-wider text-primary">{order.orderId}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                       <span>
                         {new Date(order.createdAt).toLocaleDateString("en-IN", {
                           day: "numeric",
@@ -156,6 +156,12 @@ export default function Orders() {
                       <Badge variant="outline" className="border-primary/20 bg-white text-primary">
                         Rs. {order.total.toFixed(0)}
                       </Badge>
+                      <Link href={`/tracking/${order.orderId}`}>
+                        <Button variant="outline" size="sm" className="rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                          <MapPinned className="mr-2 h-3.5 w-3.5" />
+                          Track order
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CardHeader>

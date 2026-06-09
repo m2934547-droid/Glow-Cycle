@@ -67,11 +67,8 @@ export default function Addresses() {
     postalCode: "",
   });
 
-  const searchQuery = useGeoSearch({ q: debouncedSearch, limit: 6 }, { query: { enabled: debouncedSearch.trim().length > 1 } });
-  const reverseQuery = useGeoReverse(
-    selectedPosition ? { latitude: selectedPosition[0], longitude: selectedPosition[1] } : { latitude: NaN, longitude: NaN },
-    { query: { enabled: !!selectedPosition } },
-  );
+  const searchQuery = useGeoSearch({ q: debouncedSearch, limit: 6 });
+  const reverseQuery = useGeoReverse(selectedPosition ? { latitude: selectedPosition[0], longitude: selectedPosition[1] } : { latitude: NaN, longitude: NaN });
 
   const suggestions = searchQuery.data ?? [];
   const savedAddresses = addressesQuery.data ?? [];

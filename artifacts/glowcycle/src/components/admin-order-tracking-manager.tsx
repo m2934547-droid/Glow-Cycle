@@ -37,15 +37,18 @@ export function AdminOrderTrackingManager() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const ordersQuery = useGetAdminOrders({ q: debouncedSearch }, { query: { enabled: true } });
-  const trackingQuery = useGetOrderTracking(selectedOrderId, { query: { enabled: !!selectedOrderId, refetchInterval: 30000 } });
+  const ordersQuery = useGetAdminOrders({ q: debouncedSearch }, { query: { queryKey: getGetAdminOrdersQueryKey({ q: debouncedSearch }) } });
+  const trackingQuery = useGetOrderTracking(selectedOrderId, {
+    query: {
+      queryKey: getGetOrderTrackingQueryKey(selectedOrderId),
+      enabled: !!selectedOrderId,
+      refetchInterval: 30000,
+    },
+  });
   const createEvent = useCreateTrackingEvent();
 
-  const geoQuery = useGeoSearch({ q: debouncedLocationQuery, limit: 5 }, { query: { enabled: debouncedLocationQuery.trim().length > 1 } });
-  const reverseQuery = useGeoReverse(
-    selectedPosition ? { latitude: selectedPosition[0], longitude: selectedPosition[1] } : { latitude: NaN, longitude: NaN },
-    { query: { enabled: !!selectedPosition } },
-  );
+  const geoQuery = useGeoSearch({ q: debouncedLocationQuery, limit: 5 });
+  const reverseQuery = useGeoReverse(selectedPosition ? { latitude: selectedPosition[0], longitude: selectedPosition[1] } : { latitude: NaN, longitude: NaN });
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(deferredSearch.trim()), 260);
@@ -281,7 +284,7 @@ export function AdminOrderTrackingManager() {
           </div>
 
           <OsmMap
-            center={selectedPosition ?? currentOrder ? DEFAULT_CENTER : DEFAULT_CENTER}
+            center={selectedPosition ?? DEFAULT_CENTER}
             zoom={selectedPosition ? 12 : 11}
             markers={trackingQuery.data?.events.map((event, index) => ({
               id: String(event.id),

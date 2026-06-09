@@ -18,6 +18,7 @@ import {
   GetStoresResponse,
   NearestStoreQuery,
   NearestStoreResponse,
+  TrackingEvent,
 } from "@workspace/api-zod";
 
 type SecondParameter<T extends (...args: any[]) => any> = T extends (first: any, ...args: infer P) => any ? P[0] : never;

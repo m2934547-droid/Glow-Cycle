@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, Bell, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, UserCircle2, Mail, Phone } from "lucide-react";
+import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, Bell, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, UserCircle2, Mail, Phone, MapPinned, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Footer } from "@/components/footer";
@@ -156,6 +156,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/wellness", label: "Wellness", icon: HeartPulse },
     { href: "/consultants", label: "Consultants", icon: Stethoscope },
     { href: "/store", label: "Store", icon: ShoppingBag },
+    { href: "/store-locator", label: "Locator", icon: MapPinned },
     { href: "/orders", label: "Orders", icon: ClipboardList },
   ];
 
@@ -164,6 +165,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/admin/users", label: "Users", icon: UsersIcon },
     { href: "/admin/products", label: "Products", icon: Package },
     { href: "/admin/consultants", label: "Consultants", icon: Stethoscope },
+    { href: "/admin/tracking", label: "Tracking", icon: Truck },
   ];
 
   const navItems = user?.isAdmin ? adminNavItems : userNavItems;
@@ -322,12 +324,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   { href: "/admin/users", icon: UsersIcon, label: "Users" },
                   { href: "/admin/products", icon: Package, label: "Products" },
                   { href: "/admin/consultants", icon: Stethoscope, label: "Doctors" },
+                  { href: "/admin/tracking", icon: Truck, label: "Tracking" },
                 ]
               : [
                   { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
                   { href: "/tracker", icon: Droplet, label: "Tracker" },
                   { href: "/wellness", icon: HeartPulse, label: "Wellness" },
                   { href: "/store", icon: ShoppingBag, label: "Store" },
+                  { href: "/store-locator", icon: MapPinned, label: "Locator" },
                   { href: "/orders", icon: ClipboardList, label: "Orders" },
                   { href: "/profile", icon: User, label: "Profile" },
                 ]

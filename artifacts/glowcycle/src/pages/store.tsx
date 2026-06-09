@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useGetProducts, getGetProductsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingBag, Plus } from "lucide-react";
+import { ShoppingBag, Plus, MapPinned } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useCartDrawer } from "@/components/cart-drawer";
@@ -42,6 +43,14 @@ export default function Store() {
         <p className="mt-2 text-lg text-muted-foreground">
           Curated wellness products for every phase of your cycle.
         </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link href="/store-locator">
+            <Button variant="outline" className="rounded-full border-primary/20 text-primary hover:bg-primary/5">
+              <MapPinned className="mr-2 h-4 w-4" />
+              Find a store
+            </Button>
+          </Link>
+        </div>
       </motion.div>
 
       <motion.div

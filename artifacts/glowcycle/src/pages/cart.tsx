@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGetCart, useRemoveCartItem, useCheckout, useClearCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { Trash2, ShoppingBag, CreditCard, ArrowRight, MapPin, Phone, User, ChevronLeft, CheckCircle2, Package } from "lucide-react";
+import { Trash2, ShoppingBag, CreditCard, ArrowRight, MapPin, Phone, User, ChevronLeft, CheckCircle2, Package, MapPinned } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -403,6 +403,12 @@ export default function Cart() {
             </Card>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href={`/tracking/${orderResult.orderId}`}>
+                <Button size="lg" variant="outline" className="rounded-full px-8 border-primary/30 text-primary hover:bg-primary/5">
+                  <MapPinned className="mr-2 h-4 w-4" />
+                  Track Order
+                </Button>
+              </Link>
               <Link href="/store">
                 <Button size="lg" className="rounded-full px-8 shadow-md">Continue Shopping</Button>
               </Link>

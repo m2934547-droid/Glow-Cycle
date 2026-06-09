@@ -30,13 +30,21 @@ export default function StoreLocator() {
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
-  const geoQuery = useGeoSearch({ q: debouncedSearch, limit: 5 }, { query: { enabled: debouncedSearch.trim().length > 1 } });
+  const geoQuery = useGeoSearch({ q: debouncedSearch, limit: 5 });
   const nearestQuery = useGetNearestStore(
     referencePoint ? { latitude: referencePoint[0], longitude: referencePoint[1] } : { latitude: NaN, longitude: NaN },
-    { query: { enabled: !!referencePoint } },
+    {
+      query: {
+        queryKey: getGetNearestStoreQueryKey(
+          referencePoint ? { latitude: referencePoint[0], longitude: referencePoint[1] } : { latitude: 0, longitude: 0 },
+        ),
+        enabled: !!referencePoint,
+      },
+    },
   );
 
   const stores = storesQuery.data ?? [];
+  const searchResults = geoQuery.data ?? [];
   const sortedStores = useMemo(() => {
     if (!referencePoint) return stores;
     return [...stores].sort(
@@ -63,7 +71,7 @@ export default function StoreLocator() {
     );
   }, [referencePoint]);
 
-  const pickSearchResult = (result: (typeof geoQuery.data)[number]) => {
+  const pickSearchResult = (result: (typeof searchResults)[number]) => {
     startTransition(() => {
       setReferencePoint([result.latitude, result.longitude]);
       setSelectedStoreId(null);
@@ -126,7 +134,7 @@ export default function StoreLocator() {
                 </Card>
               ) : debouncedSearch.trim().length > 1 ? (
                 <div className="grid gap-2 md:grid-cols-2">
-                  {(geoQuery.data ?? []).map((item) => (
+                  {searchResults.map((item) => (
                     <button
                       key={`${item.latitude}-${item.longitude}-${item.address}`}
                       type="button"

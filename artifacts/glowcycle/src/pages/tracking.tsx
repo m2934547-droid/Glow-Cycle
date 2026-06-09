@@ -37,6 +37,7 @@ export default function TrackingPage() {
   const { toast } = useToast();
   const orderQuery = useGetOrderTracking(orderId, {
     query: {
+      queryKey: getGetOrderTrackingQueryKey(orderId),
       enabled: !!orderId,
       refetchInterval: 30000,
     },
