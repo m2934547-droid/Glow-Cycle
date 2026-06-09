@@ -130,7 +130,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="mailto:support@glowcycle.com"
+                  href="mailto:m2934547@gmail.com"
                   className="flex items-start gap-2.5 text-sm text-rose-200 hover:text-white transition-colors group"
                 >
                   <span
@@ -139,7 +139,7 @@ export function Footer() {
                   >
                     <Mail className="h-3.5 w-3.5 text-rose-200 group-hover:text-white" />
                   </span>
-                  <span className="leading-relaxed">manjotkaur5267@gmail.com</span>
+                  <span className="leading-relaxed">m2934547@gmail.com</span>
                 </a>
               </li>
               <li>

@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, Bell, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, UserCircle2, Mail, Phone, MapPinned, Truck } from "lucide-react";
+import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, UserCircle2, Mail, Phone, MapPinned, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Footer } from "@/components/footer";
@@ -14,7 +14,8 @@ function ProfileDropdown({
   open,
   onOpenChange,
   onLogout,
-  onViewProfile,
+  onOpenProfileOverview,
+  onOpenMyProfile,
   onNavigate,
   onHelpSupport,
   name,
@@ -23,7 +24,8 @@ function ProfileDropdown({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLogout: () => void;
-  onViewProfile: () => void;
+  onOpenProfileOverview: () => void;
+  onOpenMyProfile: () => void;
   onNavigate: (href: string) => void;
   onHelpSupport: () => void;
   name: string;
@@ -68,26 +70,22 @@ function ProfileDropdown({
             </div>
           </div>
 
-          <Link
-            href="/profile"
-            onClick={onViewProfile}
+          <button
+            type="button"
+            onClick={onOpenMyProfile}
             className="mt-4 flex h-10 w-full items-center justify-center rounded-full border border-[#F3DCE7] bg-white text-sm font-medium text-[#3D2A34] shadow-sm transition-colors duration-200 hover:border-[#FF5CA8]/30 hover:text-[#FF5CA8]"
           >
             My Profile
-          </Link>
+          </button>
         </div>
 
         <div className="p-2">
-          <DropdownMenuItem className={menuItemClassName} onSelect={onViewProfile}>
+          <DropdownMenuItem className={menuItemClassName} onSelect={onOpenProfileOverview}>
             <ChartColumnBig className="h-4 w-4 text-[#FF5CA8]" />
             <span>Profile Overview</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onViewProfile()}>
-            <Bell className="h-4 w-4 text-[#FF5CA8]" />
-            <span>Notifications</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onNavigate("/profile#partner-information")}>
+          <DropdownMenuItem className={menuItemClassName} onSelect={() => onNavigate("/profile?view=add-partner")}>
             <UserPlus className="h-4 w-4 text-[#FF5CA8]" />
             <span>Add Partner</span>
           </DropdownMenuItem>
@@ -134,9 +132,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const handleViewProfile = () => {
+  const handleOpenProfileOverview = () => {
     setProfileMenuOpen(false);
-    setLocation("/profile");
+    setLocation("/profile?view=overview");
+  };
+
+  const handleOpenMyProfile = () => {
+    setProfileMenuOpen(false);
+    setLocation("/profile?view=my-profile");
   };
 
   const handleNavigate = (href: string) => {
@@ -228,7 +231,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   open={profileMenuOpen}
                   onOpenChange={setProfileMenuOpen}
                   onLogout={handleLogout}
-                  onViewProfile={handleViewProfile}
+                  onOpenProfileOverview={handleOpenProfileOverview}
+                  onOpenMyProfile={handleOpenMyProfile}
                   onNavigate={handleNavigate}
                   onHelpSupport={handleHelpSupport}
                   name={user?.name ?? "Manu"}

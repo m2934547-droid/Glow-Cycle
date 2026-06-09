@@ -1,5 +1,7 @@
+import { Link, useLocation } from "wouter";
+import { useEffect } from "react";
 import { useGetMe, useUpdateProfile, getGetMeQueryKey } from "@workspace/api-client-react";
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,10 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, Activity, CheckCircle2, Mail, Phone, CalendarDays } from "lucide-react";
+import { Activity, CheckCircle2, CalendarDays, Heart, Mail, Phone, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 import { PartnersSection } from "@/components/partners-section";
 
 const profileSchema = z.object({
@@ -23,8 +24,222 @@ const profileSchema = z.object({
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
+type ProfileView = "overview" | "my-profile" | "add-partner";
+type MeUser = NonNullable<ReturnType<typeof useGetMe>["data"]>;
+
+const PROFILE_VIEWS: Array<{ value: ProfileView; label: string }> = [
+  { value: "overview", label: "Profile Overview" },
+  { value: "my-profile", label: "My Profile" },
+  { value: "add-partner", label: "Add Partner" },
+];
+
+function getProfileView(location: string): ProfileView {
+  const [pathAndSearch, hash] = location.split("#");
+  const search = pathAndSearch.split("?")[1] ?? "";
+  const view = new URLSearchParams(search).get("view");
+
+  if (view === "my-profile" || view === "add-partner" || view === "overview") {
+    return view;
+  }
+
+  if (hash === "partner-information") {
+    return "add-partner";
+  }
+
+  return "overview";
+}
+
+function ProfileTabs({ activeView }: { activeView: ProfileView }) {
+  return (
+    <div className="flex flex-wrap gap-2 rounded-[1.75rem] border border-primary/10 bg-card/70 p-2 shadow-sm backdrop-blur-xl">
+      {PROFILE_VIEWS.map((view) => (
+        <Link
+          key={view.value}
+          href={`/profile?view=${view.value}`}
+          className={cn(
+            "rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
+            activeView === view.value
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+          )}
+        >
+          {view.label}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function PersonalInformationCard({ user }: { user: MeUser }) {
+  return (
+    <Card className="overflow-hidden rounded-[2rem] border-primary/10 bg-card/80 shadow-lg backdrop-blur-xl">
+      <CardHeader className="border-b border-primary/10 bg-primary/5 pb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-2xl font-serif">
+              <User className="h-6 w-6 text-primary" />
+              Personal Information
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Your account details at a glance.
+            </CardDescription>
+          </div>
+          <div className="shrink-0 rounded-full bg-background p-3 text-primary shadow-sm">
+            <User className="h-6 w-6" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-background/60 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Name</p>
+            <p className="mt-2 text-base font-medium text-foreground">{user.name ?? "Not available"}</p>
+          </div>
+          <div className="rounded-2xl border border-border bg-background/60 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</p>
+            <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+              <Mail className="h-4 w-4 text-primary" />
+              <span className="truncate">{user.email ?? "Not available"}</span>
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-background/60 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Phone</p>
+            <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+              <Phone className="h-4 w-4 text-primary" />
+              <span>{user.phoneNumber ?? "Not available"}</span>
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-background/60 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Age</p>
+            <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
+              <CalendarDays className="h-4 w-4 text-primary" />
+              <span>{user.age ?? "Not available"} years</span>
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function HealthProfileCard({
+  user,
+  form,
+  onSubmit,
+  isSaving,
+}: {
+  user: MeUser;
+  form: UseFormReturn<ProfileFormValues>;
+  onSubmit: (data: ProfileFormValues) => void;
+  isSaving: boolean;
+}) {
+  const getBmiColor = (category?: string) => {
+    if (!category) return "bg-muted text-muted-foreground";
+    if (category.toLowerCase().includes("normal")) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200";
+    if (category.toLowerCase().includes("under")) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200";
+    return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200";
+  };
+
+  return (
+    <Card className="overflow-hidden rounded-[2rem] border-primary/10 bg-card/80 shadow-lg backdrop-blur-xl">
+      <CardHeader className="border-b border-primary/10 bg-primary/5 pb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-2xl font-serif">
+              <Activity className="h-6 w-6 text-primary" />
+              Health Metrics
+            </CardTitle>
+            <CardDescription className="mt-1">Your Body Mass Index (BMI) overview</CardDescription>
+          </div>
+          <div className="shrink-0 rounded-full bg-background p-3 text-primary shadow-sm">
+            <Activity className="h-6 w-6" />
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-end gap-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Current BMI</p>
+            <p className="mt-1 text-4xl font-serif font-bold text-foreground">{user.bmi}</p>
+          </div>
+          <div className={cn("mb-1 rounded-full border px-4 py-1.5 text-sm font-bold", getBmiColor(user.bmiCategory))}>
+            {user.bmiCategory}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-8">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Full Name</FormLabel>
+                  <FormControl>
+                    <Input className="h-12 rounded-xl bg-background/50" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Age</FormLabel>
+                    <FormControl>
+                      <Input type="number" className="h-12 rounded-xl bg-background/50" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="heightCm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Height (cm)</FormLabel>
+                    <FormControl>
+                      <Input type="number" className="h-12 rounded-xl bg-background/50" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="weightKg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Weight (kg)</FormLabel>
+                    <FormControl>
+                      <Input type="number" className="h-12 rounded-xl bg-background/50" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button type="submit" className="h-12 gap-2 rounded-xl px-8 text-lg shadow-md" disabled={isSaving}>
+                {isSaving ? "Saving..." : <><CheckCircle2 className="h-5 w-5" /> Save Changes</>}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Profile() {
+  const [location] = useLocation();
+  const activeView = getProfileView(location);
   const { data: user, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const updateProfileMutation = useUpdateProfile();
   const queryClient = useQueryClient();
@@ -36,177 +251,120 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    if (user) {
-      form.reset({ name: user.name, age: user.age, heightCm: user.heightCm, weightKg: user.weightKg });
-    }
+    if (!user) return;
+
+    form.reset({
+      name: user.name,
+      age: user.age,
+      heightCm: user.heightCm,
+      weightKg: user.weightKg,
+    });
   }, [user, form]);
 
   const onSubmit = (data: ProfileFormValues) => {
-    updateProfileMutation.mutate({ data }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
-        toast({ title: "Profile updated", description: "Your profile has been saved successfully." });
-      },
-      onError: () => {
-        toast({ title: "Update failed", description: "Could not update your profile.", variant: "destructive" });
-      },
-    });
-  };
-
-  const getBmiColor = (category?: string) => {
-    if (!category) return "bg-muted text-muted-foreground";
-    if (category.toLowerCase().includes("normal")) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200";
-    if (category.toLowerCase().includes("under")) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200";
-    return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200";
+    updateProfileMutation.mutate(
+      { data },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+          toast({ title: "Profile updated", description: "Your profile has been saved successfully." });
+        },
+        onError: () => {
+          toast({ title: "Update failed", description: "Could not update your profile.", variant: "destructive" });
+        },
+      }
+    );
   };
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-[400px] rounded-[2rem]" />
+      <div className="mx-auto max-w-4xl space-y-6">
+        <Skeleton className="h-14 w-full rounded-[1.75rem]" />
+        <Skeleton className="h-10 w-72 rounded-full" />
+        <Skeleton className="h-[360px] rounded-[2rem]" />
       </div>
     );
   }
 
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <Card className="rounded-[2rem] border-primary/10 bg-card/80 shadow-lg backdrop-blur-xl">
+          <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+            <div className="rounded-full bg-primary/10 p-4 text-primary">
+              <User className="h-7 w-7" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="font-serif text-2xl font-semibold text-foreground">Profile unavailable</h1>
+              <p className="text-muted-foreground">We could not load your profile right now. Please try again.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const heroTitle =
+    activeView === "my-profile"
+      ? "My Profile"
+      : activeView === "add-partner"
+        ? "Add Partner"
+        : "Profile Overview";
+
+  const heroDescription =
+    activeView === "my-profile"
+      ? "View only your personal account information."
+      : activeView === "add-partner"
+        ? "Add a trusted partner without mixing in profile details."
+        : "See your personal information, health data, and partner details in one place.";
+
   return (
-    <div className="max-w-2xl mx-auto pb-10 space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8 pb-10">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground flex items-center gap-3">
-            <User className="h-8 w-8 text-primary" />
-            My Profile
-          </h1>
-          <p className="text-muted-foreground mt-2 text-lg">Manage your personal information and health data.</p>
+        <div className="space-y-4">
+          <div>
+            <h1 className="flex items-center gap-3 text-3xl font-serif font-bold text-foreground md:text-4xl">
+              <Heart className="h-8 w-8 text-primary" />
+              {heroTitle}
+            </h1>
+            <p className="mt-2 text-lg text-muted-foreground">{heroDescription}</p>
+          </div>
+          <ProfileTabs activeView={activeView} />
         </div>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <Card className="rounded-[2rem] border-primary/10 shadow-lg overflow-hidden bg-card/80 backdrop-blur-xl">
-          <CardHeader className="bg-primary/5 border-b border-primary/10 pb-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-2xl font-serif">My Profile</CardTitle>
-                <CardDescription className="mt-1">Personal information and partner information at a glance.</CardDescription>
-              </div>
-              <div className="bg-background rounded-full p-3 shadow-sm text-primary">
-                <User className="h-6 w-6" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Personal Information</p>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-background/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Name</p>
-                  <p className="mt-2 text-base font-medium text-foreground">{user?.name ?? "Not available"}</p>
-                </div>
-                <div className="rounded-2xl border border-border bg-background/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</p>
-                  <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
-                    <Mail className="h-4 w-4 text-primary" />
-                    <span className="truncate">{user?.email ?? "Not available"}</span>
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border bg-background/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Phone</p>
-                  <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
-                    <Phone className="h-4 w-4 text-primary" />
-                    <span>{user?.phoneNumber ?? "Not available"}</span>
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border bg-background/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Age</p>
-                  <p className="mt-2 flex items-center gap-2 text-base font-medium text-foreground">
-                    <CalendarDays className="h-4 w-4 text-primary" />
-                    <span>{user?.age ?? "Not available"} years</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      {activeView === "my-profile" && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <PersonalInformationCard user={user} />
+        </motion.div>
+      )}
 
-      <motion.div id="partner-information" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-        <div className="mb-4">
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Partner Information</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Add trusted partners below your personal details.</p>
-        </div>
-        <PartnersSection />
-      </motion.div>
+      {activeView === "overview" && (
+        <>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <PersonalInformationCard user={user} />
+          </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card className="rounded-[2rem] border-primary/10 shadow-lg overflow-hidden bg-card/80 backdrop-blur-xl">
-          <CardHeader className="bg-primary/5 border-b border-primary/10 pb-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-2xl font-serif">Health Metrics</CardTitle>
-                <CardDescription className="mt-1">Your Body Mass Index (BMI) overview</CardDescription>
-              </div>
-              <div className="bg-background rounded-full p-3 shadow-sm text-primary">
-                <Activity className="h-6 w-6" />
-              </div>
-            </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <HealthProfileCard user={user} form={form} onSubmit={onSubmit} isSaving={updateProfileMutation.isPending} />
+          </motion.div>
 
-            {user && (
-              <div className="mt-6 flex flex-wrap items-end gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Current BMI</p>
-                  <p className="text-4xl font-serif font-bold mt-1 text-foreground">{user.bmi}</p>
-                </div>
-                <div className={cn("px-4 py-1.5 rounded-full text-sm font-bold border mb-1", getBmiColor(user.bmiCategory))}>
-                  {user.bmiCategory}
-                </div>
-              </div>
-            )}
-          </CardHeader>
-          <CardContent className="pt-8">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base">Full Name</FormLabel>
-                    <FormControl><Input className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <PartnersSection variant="list" showEmptyState={false} showActions={false} />
+          </motion.div>
+        </>
+      )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <FormField control={form.control} name="age" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Age</FormLabel>
-                      <FormControl><Input type="number" className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="heightCm" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Height (cm)</FormLabel>
-                      <FormControl><Input type="number" className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="weightKg" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base">Weight (kg)</FormLabel>
-                      <FormControl><Input type="number" className="h-12 rounded-xl bg-background/50" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <Button type="submit" className="h-12 px-8 rounded-xl text-lg shadow-md gap-2" disabled={updateProfileMutation.isPending}>
-                    {updateProfileMutation.isPending ? "Saving..." : <><CheckCircle2 className="h-5 w-5" /> Save Changes</>}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </motion.div>
+      {activeView === "add-partner" && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className="mb-4">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Partner Information</p>
+            <h2 className="mt-2 text-2xl font-serif font-semibold text-foreground">Trusted Partners</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Use this form to add a trusted partner to your account.</p>
+          </div>
+          <PartnersSection variant="form" />
+        </motion.div>
+      )}
     </div>
   );
 }
