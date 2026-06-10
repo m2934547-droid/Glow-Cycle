@@ -12,7 +12,14 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const cachedUser = queryClient.getQueryData<GetMeQueryResult>(getGetMeQueryKey());
-  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
+  const { data: user, isLoading: isUserLoading } = useGetMe({
+    query: {
+      queryKey: getGetMeQueryKey(),
+      initialData: cachedUser,
+      refetchOnMount: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  });
   const activeUser = user ?? cachedUser;
   const isAdmin = !!activeUser?.isAdmin;
   const { data: currentCycle, isLoading: isCycleLoading } = useGetCurrentCycle({ query: { queryKey: getGetCurrentCycleQueryKey(), enabled: !isAdmin } });
