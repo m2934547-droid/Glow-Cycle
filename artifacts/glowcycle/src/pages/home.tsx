@@ -1,10 +1,28 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Droplet, Heart, Activity, ShoppingBag, X, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const BURGUNDY = "#800020";
+const SOFT_PINK = "#f7c6d4";
+const PASTEL_PINK = "#f2b4c8";
+const ROSE_PINK = "#d9829b";
+
+type WaveLine = {
+  baseY: number;
+  amplitude: number;
+  frequency: number;
+  phase: number;
+  speed: number;
+  thickness: number;
+  opacity: number;
+  color: string;
+  driftX: number;
+  driftY: number;
+  detail: number;
+  shadowBlur: number;
+};
 
 const featureCards = [
   {
@@ -60,85 +78,284 @@ const featureCards = [
   },
 ];
 
+function drawWaveLine(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  time: number,
+  line: WaveLine
+) {
+  const pointCount = Math.max(28, Math.floor(width / line.detail));
+  const points: Array<{ x: number; y: number }> = [];
+  const driftX = Math.sin(time * 0.18 + line.phase) * line.driftX * width;
+  const driftY = Math.cos(time * 0.16 + line.phase * 1.4) * line.driftY * height;
+
+  for (let index = 0; index <= pointCount; index += 1) {
+    const progress = index / pointCount;
+    const x = progress * width;
+    const waveA = Math.sin(progress * Math.PI * 2 * line.frequency + time * line.speed + line.phase);
+    const waveB = Math.sin(progress * Math.PI * 4 * (line.frequency * 0.58) + time * (line.speed * 0.72) + line.phase * 1.3);
+    const waveC = Math.sin(progress * Math.PI * 6 * 0.35 + time * (line.speed * 0.45) + line.phase * 2.1);
+    const y = line.baseY + driftY + waveA * line.amplitude + waveB * (line.amplitude * 0.33) + waveC * (line.amplitude * 0.15);
+    points.push({ x, y });
+  }
+
+  ctx.save();
+  ctx.translate(driftX, 0);
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+
+  for (let index = 1; index < points.length; index += 1) {
+    const current = points[index];
+    const previous = points[index - 1];
+    const midX = (previous.x + current.x) / 2;
+    const midY = (previous.y + current.y) / 2;
+    ctx.quadraticCurveTo(previous.x, previous.y, midX, midY);
+  }
+
+  ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+  ctx.strokeStyle = line.color;
+  ctx.globalAlpha = line.opacity;
+  ctx.lineWidth = line.thickness;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowColor = line.color;
+  ctx.shadowBlur = line.shadowBlur;
+  ctx.stroke();
+  ctx.restore();
+}
+
 function HomeBackground() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (!canvas) return;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frameId = 0;
+    let width = 0;
+    let height = 0;
+
+    const resize = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
+
+      const rect = parent.getBoundingClientRect();
+      const nextWidth = Math.max(320, rect.width);
+      const nextHeight = Math.max(720, rect.height);
+      const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      width = nextWidth;
+      height = nextHeight;
+      canvas.width = Math.round(nextWidth * nextDpr);
+      canvas.height = Math.round(nextHeight * nextDpr);
+      canvas.style.width = `${nextWidth}px`;
+      canvas.style.height = `${nextHeight}px`;
+      context.setTransform(nextDpr, 0, 0, nextDpr, 0, 0);
+    };
+
+    const paintStaticFrame = () => {
+      context.clearRect(0, 0, width, height);
+      context.globalCompositeOperation = "source-over";
+
+      const baseWash = context.createRadialGradient(width * 0.5, height * 0.43, 0, width * 0.5, height * 0.43, Math.max(width, height) * 0.62);
+      baseWash.addColorStop(0, "rgba(255,255,255,0.96)");
+      baseWash.addColorStop(0.55, "rgba(255,248,251,0.74)");
+      baseWash.addColorStop(1, "rgba(255,248,251,0.08)");
+      context.fillStyle = baseWash;
+      context.fillRect(0, 0, width, height);
+
+      const lines: WaveLine[] = [
+        {
+          baseY: height * 0.22,
+          amplitude: Math.max(12, height * 0.018),
+          frequency: 1.14,
+          phase: 0.2,
+          speed: 0.32,
+          thickness: 2.2,
+          opacity: 0.78,
+          color: SOFT_PINK,
+          driftX: 0.018,
+          driftY: 0.009,
+          detail: width / 40,
+          shadowBlur: 18,
+        },
+        {
+          baseY: height * 0.46,
+          amplitude: Math.max(14, height * 0.022),
+          frequency: 1.52,
+          phase: 1.5,
+          speed: 0.26,
+          thickness: 2,
+          opacity: 0.46,
+          color: BURGUNDY,
+          driftX: 0.014,
+          driftY: 0.01,
+          detail: width / 42,
+          shadowBlur: 16,
+        },
+        {
+          baseY: height * 0.66,
+          amplitude: Math.max(13, height * 0.02),
+          frequency: 1.25,
+          phase: 2.3,
+          speed: 0.22,
+          thickness: 1.75,
+          opacity: 0.6,
+          color: PASTEL_PINK,
+          driftX: 0.01,
+          driftY: 0.008,
+          detail: width / 44,
+          shadowBlur: 14,
+        },
+        {
+          baseY: height * 0.81,
+          amplitude: Math.max(10, height * 0.015),
+          frequency: 0.94,
+          phase: 0.9,
+          speed: 0.18,
+          thickness: 1.35,
+          opacity: 0.34,
+          color: ROSE_PINK,
+          driftX: 0.008,
+          driftY: 0.006,
+          detail: width / 48,
+          shadowBlur: 10,
+        },
+      ];
+
+      for (const line of lines) {
+        drawWaveLine(context, width, height, 0, line);
+      }
+    };
+
+    const render = (timestamp: number) => {
+      const time = timestamp * 0.000035;
+      context.clearRect(0, 0, width, height);
+      context.globalCompositeOperation = "source-over";
+
+      const background = context.createLinearGradient(0, 0, 0, height);
+      background.addColorStop(0, "#fff8fb");
+      background.addColorStop(0.45, "#fff3f7");
+      background.addColorStop(1, "#fff9fc");
+      context.fillStyle = background;
+      context.fillRect(0, 0, width, height);
+
+      const bloom = context.createRadialGradient(width * 0.5, height * 0.42, 0, width * 0.5, height * 0.42, Math.max(width, height) * 0.66);
+      bloom.addColorStop(0, "rgba(255,255,255,0.92)");
+      bloom.addColorStop(0.52, "rgba(255,247,250,0.7)");
+      bloom.addColorStop(1, "rgba(255,247,250,0.04)");
+      context.fillStyle = bloom;
+      context.fillRect(0, 0, width, height);
+
+      const lines: WaveLine[] = [
+        {
+          baseY: height * 0.2,
+          amplitude: Math.max(12, height * 0.02),
+          frequency: 1.08,
+          phase: 0.2,
+          speed: 0.72,
+          thickness: 2.2,
+          opacity: 0.7,
+          color: SOFT_PINK,
+          driftX: 0.018,
+          driftY: 0.009,
+          detail: width / 40,
+          shadowBlur: 18,
+        },
+        {
+          baseY: height * 0.43,
+          amplitude: Math.max(14, height * 0.024),
+          frequency: 1.44,
+          phase: 1.65,
+          speed: 0.56,
+          thickness: 2,
+          opacity: 0.48,
+          color: BURGUNDY,
+          driftX: 0.014,
+          driftY: 0.01,
+          detail: width / 42,
+          shadowBlur: 16,
+        },
+        {
+          baseY: height * 0.63,
+          amplitude: Math.max(13, height * 0.022),
+          frequency: 1.22,
+          phase: 2.35,
+          speed: 0.44,
+          thickness: 1.75,
+          opacity: 0.58,
+          color: PASTEL_PINK,
+          driftX: 0.01,
+          driftY: 0.008,
+          detail: width / 44,
+          shadowBlur: 14,
+        },
+        {
+          baseY: height * 0.8,
+          amplitude: Math.max(10, height * 0.016),
+          frequency: 0.92,
+          phase: 0.95,
+          speed: 0.36,
+          thickness: 1.35,
+          opacity: 0.32,
+          color: ROSE_PINK,
+          driftX: 0.008,
+          driftY: 0.006,
+          detail: width / 48,
+          shadowBlur: 10,
+        },
+      ];
+
+      for (const line of lines) {
+        drawWaveLine(context, width, height, time, line);
+      }
+
+      if (!prefersReducedMotion) {
+        frameId = window.requestAnimationFrame(render);
+      }
+    };
+
+    resize();
+
+    if (prefersReducedMotion) {
+      paintStaticFrame();
+    } else {
+      frameId = window.requestAnimationFrame(render);
+    }
+
+    const handleResize = () => {
+      resize();
+      if (prefersReducedMotion) {
+        paintStaticFrame();
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.cancelAnimationFrame(frameId);
+    };
+  }, []);
+
   return (
     <div aria-hidden className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,#fff7fa_0%,#fff3f7_42%,#fff8fb_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#fff8fb_0%,#fff3f7_42%,#fff9fc_100%)]" />
       <div className="absolute -left-32 top-[-6rem] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(255,186,208,0.42)_0%,rgba(255,186,208,0.16)_36%,rgba(255,186,208,0)_72%)] blur-3xl" />
       <div className="absolute -right-36 top-24 h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(128,0,32,0.16)_0%,rgba(128,0,32,0.08)_34%,rgba(128,0,32,0)_72%)] blur-3xl" />
       <div className="absolute bottom-[-8rem] left-1/4 h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,rgba(255,200,218,0.36)_0%,rgba(255,200,218,0.12)_40%,rgba(255,200,218,0)_75%)] blur-3xl" />
 
-      <svg
-        viewBox="0 0 1440 900"
-        className="absolute inset-0 h-full w-full opacity-60"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="lineSoftPink" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f7c6d4" stopOpacity="0.9" />
-            <stop offset="48%" stopColor="#d9829b" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#800020" stopOpacity="0.72" />
-          </linearGradient>
-          <linearGradient id="lineBurgundy" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#800020" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#f4aebe" stopOpacity="0.22" />
-          </linearGradient>
-          <radialGradient id="centerWash" cx="50%" cy="46%" r="34%">
-            <stop offset="0%" stopColor="#fffdfd" stopOpacity="0.95" />
-            <stop offset="60%" stopColor="#fff8fb" stopOpacity="0.66" />
-            <stop offset="100%" stopColor="#fff8fb" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-
-        <rect width="1440" height="900" fill="url(#centerWash)" />
-
-        <path
-          d="M-40 220 C 140 160, 250 120, 390 150 S 650 250, 785 182 S 1090 40, 1480 190"
-          fill="none"
-          stroke="url(#lineSoftPink)"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M-80 640 C 120 560, 240 450, 390 476 S 700 610, 850 522 S 1110 360, 1510 430"
-          fill="none"
-          stroke="url(#lineBurgundy)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M150 930 C 250 760, 290 650, 330 540 S 440 290, 560 210 S 780 100, 960 140 S 1180 250, 1460 70"
-          fill="none"
-          stroke="url(#lineSoftPink)"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeOpacity="0.7"
-        />
-        <path
-          d="M40 120 C 210 160, 340 210, 470 290 S 760 500, 920 470 S 1190 280, 1450 330"
-          fill="none"
-          stroke="url(#lineBurgundy)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeOpacity="0.52"
-        />
-        <path
-          d="M-20 360 C 180 300, 300 260, 435 300 S 690 420, 810 365 S 1040 210, 1460 250"
-          fill="none"
-          stroke="#f2b4c8"
-          strokeOpacity="0.32"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M-40 760 C 180 700, 300 640, 450 660 S 770 740, 930 690 S 1160 540, 1480 600"
-          fill="none"
-          stroke="#8b1034"
-          strokeOpacity="0.18"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-      </svg>
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full opacity-80"
+        style={{ transform: "translate3d(0,0,0)", willChange: "transform" }}
+      />
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.54)_30%,rgba(255,255,255,0.1)_54%,rgba(255,255,255,0)_70%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.26)_0%,rgba(255,255,255,0)_18%,rgba(255,255,255,0)_82%,rgba(255,255,255,0.18)_100%)]" />
