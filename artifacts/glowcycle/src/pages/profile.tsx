@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { useGetMe, useUpdateProfile, getGetMeQueryKey, type GetMeQueryResult } from "@workspace/api-client-react";
 import { useForm, type UseFormReturn } from "react-hook-form";
@@ -57,13 +57,20 @@ function getProfileView(location: string): ProfileView {
   return "overview";
 }
 
-function ProfileTabs({ activeView }: { activeView: ProfileView }) {
+function ProfileTabs({
+  activeView,
+  onChange,
+}: {
+  activeView: ProfileView;
+  onChange: (view: ProfileView) => void;
+}) {
   return (
     <div className="flex flex-wrap gap-2 rounded-[1.75rem] border border-primary/10 bg-card/70 p-2 shadow-sm backdrop-blur-xl">
       {PROFILE_VIEWS.map((view) => (
-        <Link
+        <button
           key={view.value}
-          href={`/profile?view=${view.value}`}
+          type="button"
+          onClick={() => onChange(view.value)}
           className={cn(
             "rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
             activeView === view.value
@@ -72,7 +79,7 @@ function ProfileTabs({ activeView }: { activeView: ProfileView }) {
           )}
         >
           {view.label}
-        </Link>
+        </button>
       ))}
     </div>
   );
@@ -247,7 +254,7 @@ function HealthProfileCard({
 
 export default function Profile() {
   const [location, setLocation] = useLocation();
-  const activeView = getProfileView(location);
+  const [activeView, setActiveView] = useState<ProfileView>(() => getProfileView(location));
   const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(activeView === "add-partner");
   const queryClient = useQueryClient();
   const cachedUser = queryClient.getQueryData<GetMeQueryResult>(getGetMeQueryKey());
@@ -282,6 +289,12 @@ export default function Profile() {
   useEffect(() => {
     setIsPartnerDialogOpen(activeView === "add-partner");
   }, [activeView]);
+
+  useEffect(() => {
+    const nextView = getProfileView(location);
+
+    setActiveView((currentView) => (currentView === nextView ? currentView : nextView));
+  }, [location]);
 
   const onSubmit = (data: ProfileFormValues) => {
     updateProfileMutation.mutate(
@@ -348,8 +361,14 @@ export default function Profile() {
     setIsPartnerDialogOpen(open);
 
     if (!open && activeView === "add-partner") {
+      setActiveView("overview");
       setLocation("/profile?view=overview");
     }
+  };
+
+  const handleTabChange = (view: ProfileView) => {
+    setActiveView(view);
+    setLocation(`/profile?view=${view}`);
   };
 
   return (
@@ -363,7 +382,7 @@ export default function Profile() {
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">{heroDescription}</p>
           </div>
-          <ProfileTabs activeView={activeView} />
+          <ProfileTabs activeView={activeView} onChange={handleTabChange} />
         </div>
       </motion.div>
 
