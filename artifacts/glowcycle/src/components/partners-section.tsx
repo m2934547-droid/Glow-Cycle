@@ -26,12 +26,14 @@ type PartnersSectionProps = {
   variant?: PartnersSectionVariant;
   showEmptyState?: boolean;
   showActions?: boolean;
+  onSuccess?: () => void;
 };
 
 export function PartnersSection({
   variant = "full",
   showEmptyState = true,
   showActions = true,
+  onSuccess,
 }: PartnersSectionProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -74,6 +76,7 @@ export function PartnersSection({
           setEmail("");
           setRelationship("partner");
           toast({ title: "Partner added", description: "They will see your cycle phase when they log in." });
+          onSuccess?.();
         },
         onError: () => toast({ title: "Could not add partner", variant: "destructive" }),
       }

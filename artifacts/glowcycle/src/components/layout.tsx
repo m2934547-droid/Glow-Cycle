@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { useState } from "react";
-import { useGetMe, useLogout } from "@workspace/api-client-react";
+import { useEffect, useState } from "react";
+import { useGetMe, useLogout, getGetMeQueryKey, type User as ApiUser } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Droplet, Calendar as CalendarIcon, HeartPulse, ShoppingBag, User, LogOut, LayoutDashboard, Users as UsersIcon, Package, Stethoscope, ClipboardList, UserPlus, KeyRound, LifeBuoy, ChartColumnBig, UserCircle2, Mail, Phone, MapPinned, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -116,9 +116,17 @@ function ProfileDropdown({
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const { data: user } = useGetMe();
-  const logoutMutation = useLogout();
   const queryClient = useQueryClient();
+  const cachedUser = queryClient.getQueryData<ApiUser>(getGetMeQueryKey());
+  const { data: user } = useGetMe({
+    query: {
+      queryKey: getGetMeQueryKey(),
+      initialData: cachedUser,
+      staleTime: 5 * 60 * 1000,
+      refetchOnMount: false,
+    },
+  });
+  const logoutMutation = useLogout();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const { openCart, cartItemCount } = useCartDrawer();
@@ -173,6 +181,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = user?.isAdmin ? adminNavItems : userNavItems;
   const showCart = !user?.isAdmin;
+
+  useEffect(() => {
+    void import("@/pages/dashboard");
+    void import("@/pages/tracker");
+    void import("@/pages/calendar");
+    void import("@/pages/wellness");
+    void import("@/pages/profile");
+  }, []);
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background text-foreground">

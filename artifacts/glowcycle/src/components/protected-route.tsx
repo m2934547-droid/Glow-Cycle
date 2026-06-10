@@ -10,8 +10,8 @@ export function ProtectedRoute({ children, requireAdmin = false }: { children: R
     query: {
       queryKey: getGetMeQueryKey(),
       initialData: cachedUser,
-      refetchOnMount: "always",
-      staleTime: 0,
+      refetchOnMount: false,
+      staleTime: 5 * 60 * 1000,
     },
   });
   const resolvedUser = user ?? cachedUser;

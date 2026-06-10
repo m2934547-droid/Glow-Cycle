@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGetMe, useUpdateProfile, getGetMeQueryKey, type GetMeQueryResult } from "@workspace/api-client-react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,15 +35,22 @@ const PROFILE_VIEWS: Array<{ value: ProfileView; label: string }> = [
 ];
 
 function getProfileView(location: string): ProfileView {
-  const [pathAndSearch, hash] = location.split("#");
-  const search = pathAndSearch.split("?")[1] ?? "";
-  const view = new URLSearchParams(search).get("view");
+  const searchFromLocation = location.includes("?") ? location.split("?")[1] ?? "" : "";
+  const currentSearch =
+    searchFromLocation ||
+    (typeof window !== "undefined" ? window.location.search.replace(/^\?/, "") : "");
+  const view = new URLSearchParams(currentSearch).get("view");
 
   if (view === "my-profile" || view === "add-partner" || view === "overview") {
     return view;
   }
 
-  if (hash === "partner-information") {
+  const hashFromLocation = location.includes("#") ? location.split("#")[1] ?? "" : "";
+  const currentHash =
+    hashFromLocation ||
+    (typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "");
+
+  if (currentHash === "partner-information") {
     return "add-partner";
   }
 
@@ -238,8 +246,9 @@ function HealthProfileCard({
 }
 
 export default function Profile() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const activeView = getProfileView(location);
+  const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(activeView === "add-partner");
   const queryClient = useQueryClient();
   const cachedUser = queryClient.getQueryData<GetMeQueryResult>(getGetMeQueryKey());
   const { data: user, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -262,6 +271,10 @@ export default function Profile() {
       weightKg: activeUser.weightKg,
     });
   }, [activeUser, form]);
+
+  useEffect(() => {
+    setIsPartnerDialogOpen(activeView === "add-partner");
+  }, [activeView]);
 
   const onSubmit = (data: ProfileFormValues) => {
     updateProfileMutation.mutate(
@@ -321,8 +334,16 @@ export default function Profile() {
     activeView === "my-profile"
       ? "View only your personal account information."
       : activeView === "add-partner"
-        ? "Add a trusted partner without mixing in profile details."
+        ? "Add a trusted partner from the pop-up form."
         : "See your personal information, health data, and partner details in one place.";
+
+  const handlePartnerDialogChange = (open: boolean) => {
+    setIsPartnerDialogOpen(open);
+
+    if (!open && activeView === "add-partner") {
+      setLocation("/profile?view=overview");
+    }
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 pb-10">
@@ -361,16 +382,28 @@ export default function Profile() {
         </>
       )}
 
-      {activeView === "add-partner" && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <div className="mb-4">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Partner Information</p>
-            <h2 className="mt-2 text-2xl font-serif font-semibold text-foreground">Trusted Partners</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Use this form to add a trusted partner to your account.</p>
+      <Dialog open={isPartnerDialogOpen} onOpenChange={handlePartnerDialogChange}>
+        <DialogContent className="max-w-2xl rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl">
+          <DialogHeader className="border-b border-primary/10 bg-primary/5 px-6 py-5">
+            <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-foreground">
+              <Heart className="h-6 w-6 text-primary" />
+              Add Partner
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Add a trusted partner from this dialog, then return to your profile overview.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-6">
+            <PartnersSection
+              variant="form"
+              onSuccess={() => {
+                setIsPartnerDialogOpen(false);
+                setLocation("/profile?view=overview");
+              }}
+            />
           </div>
-          <PartnersSection variant="form" />
-        </motion.div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
