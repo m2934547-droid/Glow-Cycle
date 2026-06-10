@@ -251,7 +251,14 @@ export default function Profile() {
   const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(activeView === "add-partner");
   const queryClient = useQueryClient();
   const cachedUser = queryClient.getQueryData<GetMeQueryResult>(getGetMeQueryKey());
-  const { data: user, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
+  const { data: user, isLoading } = useGetMe({
+    query: {
+      queryKey: getGetMeQueryKey(),
+      initialData: cachedUser,
+      refetchOnMount: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  });
   const updateProfileMutation = useUpdateProfile();
   const { toast } = useToast();
   const activeUser = user ?? cachedUser;
