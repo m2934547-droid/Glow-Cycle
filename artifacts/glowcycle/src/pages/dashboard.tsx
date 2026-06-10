@@ -1,4 +1,4 @@
-import { useGetMe, useGetCurrentCycle, useGetMotivationalQuote, getGetMeQueryKey, getGetCurrentCycleQueryKey, getGetMotivationalQuoteQueryKey } from "@workspace/api-client-react";
+import { useGetMe, useGetCurrentCycle, useGetMotivationalQuote, getGetMeQueryKey, getGetCurrentCycleQueryKey, getGetMotivationalQuoteQueryKey, type GetMeQueryResult } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Droplet, Heart, Activity, Sparkles, User as UserIcon } from "lucide-react";
@@ -7,10 +7,14 @@ import { cn } from "@/lib/utils";
 import { SharedWithMe } from "@/components/shared-with-me";
 import { AdminStats } from "@/components/admin-stats";
 import { AdminOrderTrackingManager } from "@/components/admin-order-tracking-manager";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
+  const cachedUser = queryClient.getQueryData<GetMeQueryResult>(getGetMeQueryKey());
   const { data: user, isLoading: isUserLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
-  const isAdmin = !!user?.isAdmin;
+  const activeUser = user ?? cachedUser;
+  const isAdmin = !!activeUser?.isAdmin;
   const { data: currentCycle, isLoading: isCycleLoading } = useGetCurrentCycle({ query: { queryKey: getGetCurrentCycleQueryKey(), enabled: !isAdmin } });
   const { data: quote, isLoading: isQuoteLoading } = useGetMotivationalQuote({ query: { queryKey: getGetMotivationalQuoteQueryKey(), enabled: !isAdmin } });
 
@@ -31,19 +35,6 @@ export default function Dashboard() {
     return 'text-orange-600 dark:text-orange-400';
   };
 
-  if (isUserLoading || (!isAdmin && isCycleLoading)) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-12 w-64 rounded-xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-[2rem]" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8 pb-10">
       <motion.div 
@@ -58,7 +49,7 @@ export default function Dashboard() {
               if (h < 12) return "Good morning";
               if (h < 17) return "Good afternoon";
               return "Good evening";
-            })()}, <span className="text-primary">{user?.name}</span>
+            })()}, <span className="text-primary">{activeUser?.name ?? "there"}</span>
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">
             {isAdmin ? "Platform overview and key metrics." : "Here's your wellness overview today."}
@@ -170,16 +161,16 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-serif font-bold">{user?.bmi}</p>
+                    <p className="text-3xl font-serif font-bold">{activeUser?.bmi ?? "—"}</p>
                     <p className="text-sm text-muted-foreground">BMI</p>
                   </div>
-                  <p className={cn("text-sm font-medium mt-1", getBmiColor(user?.bmiCategory))}>
-                    {user?.bmiCategory || 'Unknown'}
+                  <p className={cn("text-sm font-medium mt-1", getBmiColor(activeUser?.bmiCategory))}>
+                    {activeUser?.bmiCategory || 'Unknown'}
                   </p>
                 </div>
                 <div className="flex gap-4 text-sm text-muted-foreground pt-4 border-t border-border/50">
-                  <div><span className="font-medium text-foreground">{user?.heightCm}</span> cm</div>
-                  <div><span className="font-medium text-foreground">{user?.weightKg}</span> kg</div>
+                  <div><span className="font-medium text-foreground">{activeUser?.heightCm ?? "—"}</span> cm</div>
+                  <div><span className="font-medium text-foreground">{activeUser?.weightKg ?? "—"}</span> kg</div>
                 </div>
               </div>
             </CardContent>

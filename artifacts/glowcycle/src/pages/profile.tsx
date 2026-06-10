@@ -240,10 +240,12 @@ function HealthProfileCard({
 export default function Profile() {
   const [location] = useLocation();
   const activeView = getProfileView(location);
+  const queryClient = useQueryClient();
+  const cachedUser = queryClient.getQueryData<GetMeQueryResult>(getGetMeQueryKey());
   const { data: user, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const updateProfileMutation = useUpdateProfile();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
+  const activeUser = user ?? cachedUser;
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -251,15 +253,15 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!activeUser) return;
 
     form.reset({
-      name: user.name,
-      age: user.age,
-      heightCm: user.heightCm,
-      weightKg: user.weightKg,
+      name: activeUser.name,
+      age: activeUser.age,
+      heightCm: activeUser.heightCm,
+      weightKg: activeUser.weightKg,
     });
-  }, [user, form]);
+  }, [activeUser, form]);
 
   const onSubmit = (data: ProfileFormValues) => {
     updateProfileMutation.mutate(
@@ -276,17 +278,21 @@ export default function Profile() {
     );
   };
 
-  if (isLoading) {
+  if (!activeUser && isLoading) {
     return (
-      <div className="mx-auto max-w-4xl space-y-6">
-        <Skeleton className="h-14 w-full rounded-[1.75rem]" />
-        <Skeleton className="h-10 w-72 rounded-full" />
-        <Skeleton className="h-[360px] rounded-[2rem]" />
+      <div className="mx-auto max-w-4xl space-y-8 pb-10">
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-64 rounded-xl" />
+          <Skeleton className="h-10 w-96 rounded-full" />
+        </div>
+        <Skeleton className="h-64 rounded-[2rem]" />
+        <Skeleton className="h-[420px] rounded-[2rem]" />
+        <Skeleton className="h-80 rounded-[2rem]" />
       </div>
     );
   }
 
-  if (!user) {
+  if (!activeUser) {
     return (
       <div className="mx-auto max-w-4xl">
         <Card className="rounded-[2rem] border-primary/10 bg-card/80 shadow-lg backdrop-blur-xl">
@@ -335,19 +341,19 @@ export default function Profile() {
 
       {activeView === "my-profile" && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <PersonalInformationCard user={user} />
-        </motion.div>
+        <PersonalInformationCard user={activeUser} />
+      </motion.div>
       )}
 
       {activeView === "overview" && (
         <>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-            <PersonalInformationCard user={user} />
-          </motion.div>
+          <PersonalInformationCard user={activeUser} />
+        </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <HealthProfileCard user={user} form={form} onSubmit={onSubmit} isSaving={updateProfileMutation.isPending} />
-          </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <HealthProfileCard user={activeUser} form={form} onSubmit={onSubmit} isSaving={updateProfileMutation.isPending} />
+        </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
             <PartnersSection variant="list" showEmptyState={false} showActions={false} />
