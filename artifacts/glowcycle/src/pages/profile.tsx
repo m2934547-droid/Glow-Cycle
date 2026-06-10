@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useEffect } from "react";
-import { useGetMe, useUpdateProfile, getGetMeQueryKey } from "@workspace/api-client-react";
+import { useGetMe, useUpdateProfile, getGetMeQueryKey, type GetMeQueryResult } from "@workspace/api-client-react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +25,7 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 type ProfileView = "overview" | "my-profile" | "add-partner";
-type MeUser = NonNullable<ReturnType<typeof useGetMe>["data"]>;
+type MeUser = GetMeQueryResult;
 
 const PROFILE_VIEWS: Array<{ value: ProfileView; label: string }> = [
   { value: "overview", label: "Profile Overview" },
