@@ -60,14 +60,102 @@ const featureCards = [
   },
 ];
 
+function HomeBackground() {
+  return (
+    <div aria-hidden className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#fff7fa_0%,#fff3f7_42%,#fff8fb_100%)]" />
+      <div className="absolute -left-32 top-[-6rem] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(255,186,208,0.42)_0%,rgba(255,186,208,0.16)_36%,rgba(255,186,208,0)_72%)] blur-3xl" />
+      <div className="absolute -right-36 top-24 h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(128,0,32,0.16)_0%,rgba(128,0,32,0.08)_34%,rgba(128,0,32,0)_72%)] blur-3xl" />
+      <div className="absolute bottom-[-8rem] left-1/4 h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,rgba(255,200,218,0.36)_0%,rgba(255,200,218,0.12)_40%,rgba(255,200,218,0)_75%)] blur-3xl" />
+
+      <svg
+        viewBox="0 0 1440 900"
+        className="absolute inset-0 h-full w-full opacity-60"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="lineSoftPink" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f7c6d4" stopOpacity="0.9" />
+            <stop offset="48%" stopColor="#d9829b" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#800020" stopOpacity="0.72" />
+          </linearGradient>
+          <linearGradient id="lineBurgundy" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#800020" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#f4aebe" stopOpacity="0.22" />
+          </linearGradient>
+          <radialGradient id="centerWash" cx="50%" cy="46%" r="34%">
+            <stop offset="0%" stopColor="#fffdfd" stopOpacity="0.95" />
+            <stop offset="60%" stopColor="#fff8fb" stopOpacity="0.66" />
+            <stop offset="100%" stopColor="#fff8fb" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        <rect width="1440" height="900" fill="url(#centerWash)" />
+
+        <path
+          d="M-40 220 C 140 160, 250 120, 390 150 S 650 250, 785 182 S 1090 40, 1480 190"
+          fill="none"
+          stroke="url(#lineSoftPink)"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M-80 640 C 120 560, 240 450, 390 476 S 700 610, 850 522 S 1110 360, 1510 430"
+          fill="none"
+          stroke="url(#lineBurgundy)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M150 930 C 250 760, 290 650, 330 540 S 440 290, 560 210 S 780 100, 960 140 S 1180 250, 1460 70"
+          fill="none"
+          stroke="url(#lineSoftPink)"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeOpacity="0.7"
+        />
+        <path
+          d="M40 120 C 210 160, 340 210, 470 290 S 760 500, 920 470 S 1190 280, 1450 330"
+          fill="none"
+          stroke="url(#lineBurgundy)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeOpacity="0.52"
+        />
+        <path
+          d="M-20 360 C 180 300, 300 260, 435 300 S 690 420, 810 365 S 1040 210, 1460 250"
+          fill="none"
+          stroke="#f2b4c8"
+          strokeOpacity="0.32"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M-40 760 C 180 700, 300 640, 450 660 S 770 740, 930 690 S 1160 540, 1480 600"
+          fill="none"
+          stroke="#8b1034"
+          strokeOpacity="0.18"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+      </svg>
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.54)_30%,rgba(255,255,255,0.1)_54%,rgba(255,255,255,0)_70%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.26)_0%,rgba(255,255,255,0)_18%,rgba(255,255,255,0)_82%,rgba(255,255,255,0.18)_100%)]" />
+    </div>
+  );
+}
+
 export default function Home() {
   const [activeCard, setActiveCard] = useState<string | null>(null);
 
   const toggle = (id: string) => setActiveCard((prev) => (prev === id ? null : id));
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
-      <div className="max-w-3xl text-center space-y-8">
+    <div className="relative min-h-[calc(100vh-8rem)] overflow-hidden">
+      <HomeBackground />
+
+      <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center justify-center px-4 pt-10 text-center sm:pt-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
