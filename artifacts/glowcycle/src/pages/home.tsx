@@ -66,7 +66,7 @@ export default function Home() {
   const toggle = (id: string) => setActiveCard((prev) => (prev === id ? null : id));
 
   return (
-    <div className="relative min-h-[calc(100vh-8rem)] overflow-hidden">
+    <div className="relative min-h-[calc(100vh-8rem)] overflow-x-clip">
       <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center justify-center px-4 pt-10 text-center sm:pt-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -77,9 +77,9 @@ export default function Home() {
           <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
             <Droplet className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-5xl md:text-7xl font-serif font-bold text-foreground leading-tight">
+          <h1 className="text-4xl font-serif font-bold leading-[0.95] text-foreground sm:text-5xl md:text-7xl">
             Your gentle <br />
-            <span className="text-primary relative whitespace-nowrap">cycle companion</span>
+            <span className="relative text-primary">cycle companion</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             GlowCycle helps you understand your body, track your phases, and nurture your wellness — all in one soft, empowering space.
@@ -110,7 +110,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-24 max-w-5xl mx-auto w-full px-4"
+        className="mx-auto mt-16 grid w-full max-w-5xl grid-cols-1 gap-6 px-4 md:mt-24 md:grid-cols-3"
       >
         {featureCards.map((card) => {
           const isActive = activeCard === card.id;
@@ -136,13 +136,13 @@ export default function Home() {
               <div
                 className={
                   isActive
-                    ? "p-8 text-white"
-                    : "bg-card/50 backdrop-blur-sm border-card-border p-8 text-foreground hover-elevate transition-all duration-300 group"
+                    ? "p-6 text-white sm:p-8"
+                    : "bg-card/50 backdrop-blur-sm border-card-border p-6 text-foreground transition-all duration-300 group hover-elevate sm:p-8"
                 }
               >
                 {/* Header row */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-col items-center gap-4 flex-1 text-center">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 flex-1 flex-col items-center gap-4 text-center">
                     <div
                       className="w-12 h-12 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
                       style={{ background: isActive ? "rgba(255,255,255,0.15)" : undefined }}
@@ -160,7 +160,7 @@ export default function Home() {
                   {isActive && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setActiveCard(null); }}
-                      className="text-rose-300 hover:text-white transition-colors shrink-0 -mt-1 -mr-2 p-1"
+                      className="self-end shrink-0 p-1 text-rose-300 transition-colors hover:text-white sm:-mt-1 sm:-mr-2"
                     >
                       <X className="h-4 w-4" />
                     </button>

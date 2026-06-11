@@ -204,7 +204,7 @@ function PartnerFormFields({
 }) {
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <div>
           <Label htmlFor="partner-name" className="text-xs">
             Partner Name
@@ -234,7 +234,7 @@ function PartnerFormFields({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <div>
           <Label htmlFor="partner-phone" className="text-xs">
             Phone Number
@@ -261,7 +261,7 @@ function PartnerFormFields({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_220px]">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
         <div>
           <Label className="text-xs">Relationship Type</Label>
           <Select
@@ -330,7 +330,7 @@ function PartnerDetailRow({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-background/60 p-4">
+    <div className="min-w-0 rounded-2xl border border-border bg-background/60 p-4">
       <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
       <p className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
         <Icon className="h-4 w-4 text-primary" />
@@ -450,10 +450,8 @@ export function PartnersSection({
   });
   const currentUserLabel = currentUser?.name ?? currentUser?.email ?? "Current user";
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [relationship, setRelationship] = useState("partner-spouse");
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [addValues, setAddValues] = useState<PartnerFormValues>(emptyFormValues);
+  const [addErrors, setAddErrors] = useState<Partial<Record<keyof PartnerFormValues, string>>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [metadata, setMetadata] = useState<Record<string, PartnerMetadata>>({});
   const [detailPartner, setDetailPartner] = useState<PartnerWithMeta | null>(null);
@@ -559,19 +557,24 @@ export function PartnersSection({
   };
 
   const validateAddPartner = () => {
-    const nextErrors: { name?: string; email?: string } = {};
+    const nextErrors: Partial<Record<keyof PartnerFormValues, string>> = {};
 
-    if (!name.trim()) nextErrors.name = "Required";
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Valid email required";
+    if (!addValues.partnerName.trim()) nextErrors.partnerName = "Name is required";
 
     if (
-      email.trim() &&
-      partnerItems.some((partner) => buildPartnerKey(partner.partnerEmail) === buildPartnerKey(email))
+      !addValues.partnerEmail.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addValues.partnerEmail.trim())
     ) {
-      nextErrors.email = "That email is already linked to a partner";
+      nextErrors.partnerEmail = "Enter a valid email address";
+    } else if (
+      partnerItems.some(
+        (partner) => buildPartnerKey(partner.partnerEmail) === buildPartnerKey(addValues.partnerEmail)
+      )
+    ) {
+      nextErrors.partnerEmail = "That email is already linked to a partner";
     }
 
-    setErrors(nextErrors);
+    setAddErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
@@ -600,27 +603,25 @@ export function PartnersSection({
     try {
       const response = await addPartner.mutateAsync({
         data: {
-          partnerName: name.trim(),
-          partnerEmail: normalizeEmail(email),
-          relationship,
+          partnerName: addValues.partnerName.trim(),
+          partnerEmail: normalizeEmail(addValues.partnerEmail),
+          relationship: addValues.relationship,
         },
       });
 
       updateLocalMetadata(response.partnerEmail, {
-        phoneNumber: "",
-        dateOfBirth: "",
-        notes: "",
-        status: "active",
+        phoneNumber: addValues.phoneNumber.trim(),
+        dateOfBirth: addValues.dateOfBirth,
+        notes: addValues.notes.trim(),
+        status: addValues.status,
         createdBy: currentUserLabel,
         createdAt: response.createdAt,
         updatedAt: response.createdAt,
       });
 
       queryClient.invalidateQueries({ queryKey: getGetPartnersQueryKey() });
-      setName("");
-      setEmail("");
-      setRelationship("partner-spouse");
-      setErrors({});
+      setAddValues(emptyFormValues);
+      setAddErrors({});
       toast({ title: "Partner added", description: "Your partner is now linked to your account." });
       onSuccess?.();
     } catch {
@@ -756,58 +757,14 @@ export function PartnersSection({
       <h3 className="font-medium text-foreground flex items-center gap-2">
         <UserPlus className="h-4 w-4 text-primary" /> Add a New Partner
       </h3>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="p-name" className="text-xs">
-            Partner Name
-          </Label>
-          <Input
-            id="p-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Alex"
-            className={cn("mt-1 rounded-xl bg-background", errors.name && "border-destructive")}
-          />
-          {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
-        </div>
-        <div>
-          <Label htmlFor="p-email" className="text-xs">
-            Email Address
-          </Label>
-          <Input
-            id="p-email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="alex@example.com"
-            className={cn("mt-1 rounded-xl bg-background", errors.email && "border-destructive")}
-          />
-          {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
-        </div>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-[1fr_220px]">
-        <div>
-          <Label className="text-xs">Relationship Type</Label>
-          <Select value={relationship} onValueChange={setRelationship}>
-            <SelectTrigger className="mt-1 rounded-xl bg-background">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RELATIONSHIPS.map((relationshipItem) => (
-                <SelectItem key={relationshipItem.value} value={relationshipItem.value}>
-                  {relationshipItem.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-end">
-          <Button onClick={handleAdd} disabled={addPartner.isPending} className="h-11 w-full gap-2 rounded-xl shadow-md">
-            <UserPlus className="h-4 w-4" />
-            {addPartner.isPending ? "Adding..." : "Add Partner"}
-          </Button>
-        </div>
-      </div>
+      <PartnerFormFields
+        values={addValues}
+        onChange={setAddValues}
+        errors={addErrors}
+        isSaving={addPartner.isPending}
+        submitLabel="Add Partner"
+        onSubmit={handleAdd}
+      />
     </div>
   );
 
@@ -884,7 +841,7 @@ export function PartnersSection({
             if (!open) setDetailPartner(null);
           }}
         >
-          <DialogContent className="max-w-2xl rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl">
+          <DialogContent className="w-[calc(100vw-1rem)] max-h-[90vh] overflow-y-auto rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl sm:max-w-2xl">
             <DialogHeader className="border-b border-primary/10 bg-primary/5 px-6 py-5">
               <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-foreground">
                 <Heart className="h-6 w-6 text-primary" />
@@ -897,7 +854,7 @@ export function PartnersSection({
             <div className="space-y-6 p-6">
               {detailPartner ? (
                 <>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 font-serif text-2xl font-bold text-primary shadow-inner">
                       {getPartnerInitial(detailPartner.partnerName)}
                     </div>
@@ -917,7 +874,7 @@ export function PartnersSection({
                     </span>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3 md:grid-cols-2">
                     <PartnerDetailRow icon={Mail} label="Email" value={detailPartner.partnerEmail} />
                     <PartnerDetailRow
                       icon={Phone}
@@ -961,7 +918,7 @@ export function PartnersSection({
             if (!open) setEditPartner(null);
           }}
         >
-          <DialogContent className="max-w-3xl rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl">
+          <DialogContent className="w-[calc(100vw-1rem)] max-h-[90vh] overflow-y-auto rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl sm:max-w-3xl">
             <DialogHeader className="border-b border-primary/10 bg-primary/5 px-6 py-5">
               <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-foreground">
                 <PencilLine className="h-6 w-6 text-primary" />
@@ -991,7 +948,7 @@ export function PartnersSection({
             if (!open) setDeletePartner(null);
           }}
         >
-          <DialogContent className="max-w-md rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl">
+          <DialogContent className="w-[calc(100vw-1rem)] max-h-[90vh] overflow-y-auto rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl sm:max-w-md">
             <DialogHeader className="border-b border-primary/10 bg-primary/5 px-6 py-5">
               <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-foreground">
                 <Trash2 className="h-6 w-6 text-destructive" />
@@ -1023,8 +980,8 @@ export function PartnersSection({
     return (
       <Card className="overflow-hidden rounded-[2rem] border-primary/10 bg-card/80 shadow-lg backdrop-blur-xl">
         <CardHeader className="border-b border-primary/10 bg-primary/5 pb-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
               <CardTitle className="flex items-center gap-2 text-2xl font-serif">
                 <Heart className="h-6 w-6 text-primary" />
                 {headerTitle}
@@ -1050,8 +1007,8 @@ export function PartnersSection({
       <>
         <Card className="overflow-hidden rounded-[2rem] border-primary/10 bg-card/80 shadow-lg backdrop-blur-xl">
           <CardHeader className="border-b border-primary/10 bg-primary/5 pb-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <CardTitle className="flex items-center gap-2 text-2xl font-serif">
                   <Heart className="h-6 w-6 text-primary" />
                   {headerTitle}
@@ -1074,8 +1031,8 @@ export function PartnersSection({
     <>
       <Card className="overflow-hidden rounded-[2rem] border-primary/10 bg-card/80 shadow-lg backdrop-blur-xl">
         <CardHeader className="border-b border-primary/10 bg-primary/5 pb-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
               <CardTitle className="flex items-center gap-2 text-2xl font-serif">
                 <Heart className="h-6 w-6 text-primary" />
                 {headerTitle}

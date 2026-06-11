@@ -103,10 +103,10 @@ export default function Cart() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="mx-auto w-full max-w-4xl space-y-6">
         <Skeleton className="h-10 w-48" />
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-4">
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="space-y-4 lg:col-span-2">
             <Skeleton className="h-32 rounded-2xl" />
             <Skeleton className="h-32 rounded-2xl" />
           </div>
@@ -119,14 +119,14 @@ export default function Cart() {
   const isEmpty = !cart?.items || cart.items.length === 0;
 
   return (
-    <div className="max-w-4xl mx-auto pb-10 space-y-8">
+    <div className="mx-auto w-full max-w-4xl space-y-8 pb-10">
       <AnimatePresence mode="wait">
 
         {/* ─── STEP: CART ─── */}
         {step === "cart" && (
           <motion.div key="cart" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <div className="mb-6">
-              <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground flex items-center gap-3">
+              <h1 className="flex flex-col gap-3 text-3xl font-serif font-bold text-foreground sm:flex-row sm:items-center md:text-4xl">
                 <ShoppingBag className="h-8 w-8 text-primary" />
                 Your Cart
               </h1>
@@ -152,25 +152,25 @@ export default function Cart() {
 
                   {cart.items.map((item, index) => (
                     <motion.div key={item.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.08 }}>
-                      <Card className="rounded-2xl border-primary/10 shadow-sm overflow-hidden flex flex-row">
+                      <Card className="flex flex-col overflow-hidden rounded-2xl border-primary/10 shadow-sm sm:flex-row">
                         {item.product.imageUrl ? (
-                          <div className="w-24 sm:w-32 shrink-0 bg-muted">
+                          <div className="aspect-[16/9] w-full shrink-0 bg-muted sm:aspect-auto sm:w-32">
                             <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="w-24 sm:w-32 shrink-0 bg-primary/5 flex items-center justify-center">
+                          <div className="flex aspect-[16/9] w-full shrink-0 items-center justify-center bg-primary/5 sm:aspect-auto sm:w-32">
                             <ShoppingBag className="h-8 w-8 text-primary/20" />
                           </div>
                         )}
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <div className="flex justify-between items-start gap-2">
-                            <div>
+                        <div className="flex min-w-0 flex-1 flex-col justify-between p-4">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
                               <h4 className="font-medium text-foreground line-clamp-1">{item.product.name}</h4>
                               <p className="text-sm text-muted-foreground mt-1">Qty: {item.quantity}</p>
                             </div>
-                            <p className="font-bold text-primary whitespace-nowrap">₹{(item.product.price * item.quantity).toFixed(0)}</p>
+                            <p className="self-start font-bold text-primary sm:self-auto sm:whitespace-nowrap">₹{(item.product.price * item.quantity).toFixed(0)}</p>
                           </div>
-                          <div className="flex justify-end mt-4">
+                          <div className="mt-4 flex justify-end">
                             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 px-2" onClick={() => handleRemove(item.id)} disabled={removeItemMutation.isPending}>
                               <Trash2 className="h-4 w-4 mr-2" /> Remove
                             </Button>
@@ -182,14 +182,14 @@ export default function Cart() {
                 </div>
 
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                  <Card className="rounded-[2rem] border-primary/10 shadow-md sticky top-24 bg-card/80 backdrop-blur-md">
+                  <Card className="rounded-[2rem] border-primary/10 shadow-md bg-card/80 backdrop-blur-md lg:sticky lg:top-24">
                     <CardHeader>
                       <CardTitle className="font-serif text-xl">Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {cart.items.map(item => (
                         <div key={item.id} className="flex justify-between text-sm text-muted-foreground">
-                          <span className="line-clamp-1 mr-2">{item.product.name} x{item.quantity}</span>
+                        <span className="mr-2 line-clamp-1 min-w-0">{item.product.name} x{item.quantity}</span>
                           <span className="shrink-0">₹{(item.product.price * item.quantity).toFixed(0)}</span>
                         </div>
                       ))}
@@ -228,13 +228,13 @@ export default function Cart() {
               <ChevronLeft className="h-4 w-4 mr-1" /> Back to Cart
             </button>
 
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+            <h1 className="mb-8 flex flex-col gap-3 text-3xl font-serif font-bold text-foreground sm:flex-row sm:items-center md:text-4xl">
               <MapPin className="h-8 w-8 text-primary" />
               Delivery Details
             </h1>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-2 space-y-6">
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div className="space-y-6 lg:col-span-2">
                 {/* Contact */}
                 <Card className="rounded-[2rem] border-primary/10 shadow-sm">
                   <CardHeader className="pb-4">
@@ -242,7 +242,7 @@ export default function Cart() {
                       <User className="h-5 w-5 text-primary" /> Contact Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="grid sm:grid-cols-2 gap-4">
+                  <CardContent className="grid gap-4 md:grid-cols-2">
                     <div>
                       <Label htmlFor="name">Full Name</Label>
                       <Input id="name" placeholder="Your full name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={cn("mt-1 rounded-xl", errors.name && "border-destructive")} />
@@ -269,7 +269,7 @@ export default function Cart() {
                       <Input id="address" placeholder="House no, street, area, landmark" value={form.addressLine} onChange={e => setForm(f => ({ ...f, addressLine: e.target.value }))} className={cn("mt-1 rounded-xl", errors.addressLine && "border-destructive")} />
                       {errors.addressLine && <p className="text-destructive text-xs mt-1">{errors.addressLine}</p>}
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="grid gap-4 md:grid-cols-3">
                       <div>
                         <Label htmlFor="city">City</Label>
                         <Input id="city" placeholder="City" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className={cn("mt-1 rounded-xl", errors.city && "border-destructive")} />
@@ -326,14 +326,14 @@ export default function Cart() {
 
               {/* Summary sidebar */}
               <div>
-                <Card className="rounded-[2rem] border-primary/10 shadow-md sticky top-24 bg-card/80 backdrop-blur-md">
+                <Card className="rounded-[2rem] border-primary/10 shadow-md bg-card/80 backdrop-blur-md lg:sticky lg:top-24">
                   <CardHeader>
                     <CardTitle className="font-serif text-xl">Order Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {cart?.items?.map(item => (
                       <div key={item.id} className="flex justify-between text-sm text-muted-foreground">
-                        <span className="line-clamp-1 mr-2">{item.product.name} x{item.quantity}</span>
+                        <span className="mr-2 line-clamp-1 min-w-0">{item.product.name} x{item.quantity}</span>
                         <span className="shrink-0">₹{(item.product.price * item.quantity).toFixed(0)}</span>
                       </div>
                     ))}
@@ -392,7 +392,7 @@ export default function Cart() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Delivery to</span>
-                    <span className="font-medium text-right max-w-[55%]">{orderResult.address}</span>
+                        <span className="max-w-[60%] break-words text-right font-medium">{orderResult.address}</span>
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t border-border">
                     <span className="text-muted-foreground">Estimated Delivery</span>

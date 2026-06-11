@@ -47,10 +47,10 @@ export default function Dashboard() {
       <motion.div 
         initial={{ opacity: 0, y: -10 }} 
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
       >
-        <div>
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-serif font-bold text-foreground md:text-4xl">
             {(() => {
               const h = new Date().getHours();
               if (h < 12) return "Good morning";
@@ -79,12 +79,12 @@ export default function Dashboard() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="bg-gradient-to-br from-primary/10 to-secondary/20 border-none shadow-sm rounded-[2rem] overflow-hidden">
-          <CardContent className="p-8 flex items-center gap-6">
+        <Card className="overflow-hidden rounded-[2rem] border-none bg-gradient-to-br from-primary/10 to-secondary/20 shadow-sm">
+          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:gap-6 sm:p-8">
             <div className="hidden sm:flex h-16 w-16 rounded-full bg-white/50 backdrop-blur items-center justify-center shrink-0">
               <Sparkles className="h-8 w-8 text-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               {isQuoteLoading ? (
                 <div className="space-y-2">
                   <Skeleton className="h-6 w-full max-w-lg" />
@@ -103,7 +103,7 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {/* Cycle Status */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card className="h-full rounded-[2rem] border-primary/10 shadow-sm hover-elevate overflow-hidden">

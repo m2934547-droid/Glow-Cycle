@@ -67,12 +67,12 @@ function ProfileLoading() {
   return (
     <div className="mx-auto max-w-4xl space-y-8 pb-10">
       <div className="space-y-4">
-        <Skeleton className="h-12 w-64 rounded-xl" />
-        <Skeleton className="h-10 w-96 rounded-full" />
+        <Skeleton className="h-12 w-64 max-w-full rounded-xl" />
+        <Skeleton className="h-10 w-full max-w-96 rounded-full" />
       </div>
-      <Skeleton className="h-64 rounded-[2rem]" />
-      <Skeleton className="h-[420px] rounded-[2rem]" />
-      <Skeleton className="h-80 rounded-[2rem]" />
+      <Skeleton className="h-56 rounded-[2rem] sm:h-64" />
+      <Skeleton className="h-[320px] rounded-[2rem] sm:h-[420px]" />
+      <Skeleton className="h-72 rounded-[2rem] sm:h-80" />
     </div>
   );
 }
@@ -153,9 +153,13 @@ export default function Profile() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 pb-10">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start">
-        <div className="space-y-4">
+    <div className="mx-auto w-full max-w-5xl space-y-8 pb-10">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-4 sm:flex-row sm:items-start"
+      >
+        <div className="min-w-0 space-y-4">
           <div>
             <h1 className="flex items-center gap-3 text-3xl font-serif font-bold text-foreground md:text-4xl">
               <Heart className="h-8 w-8 text-primary" />
@@ -180,7 +184,7 @@ export default function Profile() {
       )}
 
       <Dialog open={isPartnerDialogOpen} onOpenChange={handlePartnerDialogChange}>
-        <DialogContent className="max-w-2xl rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl">
+        <DialogContent className="w-[calc(100vw-1rem)] max-h-[90vh] overflow-y-auto rounded-[2rem] border-primary/10 bg-background/95 p-0 shadow-2xl sm:max-w-2xl">
           <DialogHeader className="border-b border-primary/10 bg-primary/5 px-6 py-5">
             <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-foreground">
               <Heart className="h-6 w-6 text-primary" />

@@ -205,7 +205,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-3 sm:px-4 h-16 flex items-center justify-between gap-2">
+        <div className="container mx-auto flex h-16 min-w-0 items-center justify-between gap-2 px-3 sm:px-4">
           <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 group min-w-0 shrink-0">
             <div className="bg-primary/10 p-2 rounded-full group-hover:bg-primary/20 transition-colors">
               <Droplet className="h-5 w-5 sm:h-6 sm:w-6 text-primary fill-primary/20" />
@@ -214,7 +214,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1 min-w-0">
+          <nav className="hidden min-w-0 items-center gap-1 md:flex">
             {user ? (
               <>
                 {navItems.map((item) => {
@@ -281,7 +281,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Mobile header actions (cart + logout when logged in, login/signup when not) */}
-          <div className="flex md:hidden items-center gap-1 shrink-0">
+          <div className="flex shrink-0 items-center gap-1 md:hidden">
             {user ? (
               <>
                 {showCart && (
@@ -314,21 +314,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className={cn("flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8", user && "pb-24 md:pb-8")}>
+      <main className={cn("container mx-auto min-w-0 flex-1 px-3 py-4 sm:px-4 sm:py-8", user && "pb-24 md:pb-8")}>
         {children}
       </main>
 
       <Footer />
 
       <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
-        <DialogContent className="rounded-[24px] border-[#F3DCE7] bg-white sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="w-[calc(100vw-1rem)] max-h-[90vh] overflow-y-auto rounded-[24px] border-[#F3DCE7] bg-white p-0 sm:max-w-md">
+          <DialogHeader className="border-b border-[#F3DCE7] px-6 py-5">
             <DialogTitle className="font-serif text-2xl text-[#3D2A34]">Help & Support</DialogTitle>
             <DialogDescription className="text-[#8B6F7D]">
               Contact GlowCycle support using the details below.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4 px-6 pb-6 pt-4">
             <div className="rounded-2xl border border-[#F3DCE7] bg-[#FFF7FB] p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[#8B6F7D]">Phone</p>
               <p className="mt-2 flex items-center gap-2 text-sm font-medium text-[#3D2A34]">
@@ -349,8 +349,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Bottom Nav */}
       {user && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur pb-safe z-50">
-          <div className="flex items-center justify-around px-1 py-2">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 pb-safe backdrop-blur">
+          <div className={cn("grid items-center gap-1 px-1 py-2", user.isAdmin ? "grid-cols-5" : "grid-cols-7")}>
             {(user.isAdmin
               ? [
                   { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
@@ -362,9 +362,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               : [
                   { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
                   { href: "/tracker", icon: Droplet, label: "Tracker" },
+                  { href: "/store-locator", icon: MapPinned, label: "Locator" },
                   { href: "/wellness", icon: HeartPulse, label: "Wellness" },
                   { href: "/store", icon: ShoppingBag, label: "Store" },
-                  { href: "/store-locator", icon: MapPinned, label: "Locator" },
                   { href: "/orders", icon: ClipboardList, label: "Orders" },
                   { href: "/profile", icon: User, label: "Profile" },
                 ]
@@ -373,14 +373,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex-1 min-w-0 px-1 py-1.5 rounded-xl flex flex-col items-center gap-0.5 transition-colors relative",
+                  "min-w-0 rounded-xl px-1 py-1.5 flex flex-col items-center gap-0.5 transition-colors relative",
                   location === item.href
                     ? "text-primary"
                     : "text-muted-foreground"
                 )}
               >
                 <item.icon className={cn("h-5 w-5 shrink-0", location === item.href && "fill-primary/20")} />
-                <span className="text-[10px] font-medium truncate max-w-full">{item.label}</span>
+                <span className="hidden text-[10px] font-medium truncate max-w-full sm:block">{item.label}</span>
                 {item.href === "/store" && cartItemCount > 0 && (
                   <span className="absolute top-0.5 right-1/4 bg-primary text-primary-foreground text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center border-2 border-background">
                     {cartItemCount}
