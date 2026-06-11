@@ -1,18 +1,33 @@
-import { useGetCycles, useCreateCycle, useDeleteCycle, useGetCurrentCycle, getGetCyclesQueryKey, getGetCurrentCycleQueryKey } from "@workspace/api-client-react";
+import { useEffect } from "react";
+import {
+  useGetCycles,
+  useCreateCycle,
+  useDeleteCycle,
+  useGetCurrentCycle,
+  useGetMe,
+  useUpdateProfile,
+  getGetCyclesQueryKey,
+  getGetCurrentCycleQueryKey,
+  getGetMeQueryKey,
+  type GetMeQueryResult,
+} from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, differenceInDays } from "date-fns";
-import { Trash2, Plus, Calendar as CalendarIcon, Droplets } from "lucide-react";
+import { Trash2, Plus, Calendar as CalendarIcon, Droplets, Activity, Scale, Ruler, ShieldCheck, HeartPulse } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { calculateBmi, formatProfileDate, getBmiCategory, useProfileStore } from "@/lib/profile-store";
 
 const cycleSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
@@ -26,15 +41,92 @@ const cycleSchema = z.object({
 
 type CycleFormValues = z.infer<typeof cycleSchema>;
 
+const healthSchema = z.object({
+  heightCm: z.coerce.number().min(80, "Height should be at least 80 cm").max(260, "Height looks too high"),
+  weightKg: z.coerce.number().min(25, "Weight should be at least 25 kg").max(400, "Weight looks too high"),
+  bloodGroup: z.string().min(1, "Please select a blood group"),
+  allergies: z.string().optional(),
+  medicalConditions: z.string().optional(),
+  medications: z.string().optional(),
+});
+
+type HealthFormValues = z.infer<typeof healthSchema>;
+
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+function HealthSummary({
+  heightCm,
+  weightKg,
+  bloodGroup,
+}: {
+  heightCm?: number;
+  weightKg?: number;
+  bloodGroup?: string;
+}) {
+  const bmi = calculateBmi(weightKg, heightCm);
+  const bmiCategory = getBmiCategory(bmi);
+
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <div className="rounded-2xl border border-border bg-background/70 p-4">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">BMI</p>
+        <div className="mt-2 flex items-end gap-2">
+          <span className="font-serif text-2xl font-semibold text-foreground">{bmi ?? "N/A"}</span>
+          <span
+            className={cn(
+              "mb-0.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+              bmiCategory === "Underweight"
+                ? "border-blue-200 bg-blue-100 text-blue-800"
+                : bmiCategory === "Normal"
+                  ? "border-green-200 bg-green-100 text-green-800"
+                  : bmiCategory === "Overweight"
+                    ? "border-orange-200 bg-orange-100 text-orange-800"
+                    : "border-rose-200 bg-rose-100 text-rose-800"
+            )}
+          >
+            {bmiCategory}
+          </span>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Body mass index updates automatically from height and weight.
+        </p>
+      </div>
+      <div className="rounded-2xl border border-border bg-background/70 p-4">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Health context</p>
+        <div className="mt-2 space-y-2 text-sm text-foreground">
+          <p className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <span>Blood group: {bloodGroup || "Not set"}</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <HeartPulse className="h-4 w-4 text-primary" />
+            <span>Cycle insights stay personal and easy to read.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Tracker() {
   const { data: cycles, isLoading: isCyclesLoading } = useGetCycles({ query: { queryKey: getGetCyclesQueryKey() } });
   const { data: currentCycle, isLoading: isCurrentLoading } = useGetCurrentCycle({ query: { queryKey: getGetCurrentCycleQueryKey() } });
-  
+  const queryClient = useQueryClient();
+  const cachedUser = queryClient.getQueryData<GetMeQueryResult>(getGetMeQueryKey());
+  const { data: currentUser } = useGetMe({
+    query: {
+      queryKey: getGetMeQueryKey(),
+      initialData: cachedUser,
+      staleTime: 5 * 60 * 1000,
+      refetchOnMount: false,
+    },
+  });
+
   const createCycle = useCreateCycle();
   const deleteCycle = useDeleteCycle();
-  
-  const queryClient = useQueryClient();
+  const updateProfile = useUpdateProfile();
   const { toast } = useToast();
+  const [profileStore, setProfileStore] = useProfileStore(currentUser ?? cachedUser);
 
   const form = useForm<CycleFormValues>({
     resolver: zodResolver(cycleSchema),
@@ -45,6 +137,37 @@ export default function Tracker() {
       notes: "",
     },
   });
+
+  const healthForm = useForm<HealthFormValues>({
+    resolver: zodResolver(healthSchema),
+    defaultValues: {
+      heightCm: currentUser?.heightCm ?? 0,
+      weightKg: currentUser?.weightKg ?? 0,
+      bloodGroup: profileStore?.bloodGroup ?? "",
+      allergies: profileStore?.allergies ?? "",
+      medicalConditions: profileStore?.medicalConditions ?? "",
+      medications: profileStore?.medications ?? "",
+    },
+  });
+
+  const liveHeight = healthForm.watch("heightCm");
+  const liveWeight = healthForm.watch("weightKg");
+  const liveBloodGroup = healthForm.watch("bloodGroup");
+  const liveBmi = calculateBmi(liveWeight, liveHeight);
+  const liveBmiCategory = getBmiCategory(liveBmi);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    healthForm.reset({
+      heightCm: currentUser.heightCm ?? 0,
+      weightKg: currentUser.weightKg ?? 0,
+      bloodGroup: profileStore?.bloodGroup ?? "",
+      allergies: profileStore?.allergies ?? "",
+      medicalConditions: profileStore?.medicalConditions ?? "",
+      medications: profileStore?.medications ?? "",
+    });
+  }, [currentUser, profileStore, healthForm]);
 
   const onSubmit = (data: CycleFormValues) => {
     createCycle.mutate(
@@ -58,6 +181,52 @@ export default function Tracker() {
         },
         onError: () => {
           toast({ title: "Error", description: "Failed to log period.", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const onHealthSubmit = (data: HealthFormValues) => {
+    if (!currentUser) return;
+
+    updateProfile.mutate(
+      {
+        data: {
+          heightCm: data.heightCm,
+          weightKg: data.weightKg,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.setQueryData<GetMeQueryResult>(getGetMeQueryKey(), (current) =>
+            current
+              ? {
+                  ...current,
+                  heightCm: data.heightCm,
+                  weightKg: data.weightKg,
+                  bmi: calculateBmi(data.weightKg, data.heightCm) ?? current.bmi,
+                  bmiCategory: getBmiCategory(calculateBmi(data.weightKg, data.heightCm)),
+                }
+              : current
+          );
+
+          setProfileStore((current) =>
+            current
+              ? {
+                  ...current,
+                  bloodGroup: data.bloodGroup,
+                  allergies: data.allergies?.trim() ?? "",
+                  medicalConditions: data.medicalConditions?.trim() ?? "",
+                  medications: data.medications?.trim() ?? "",
+                  lastUpdatedAt: new Date().toISOString(),
+                }
+              : current
+          );
+
+          toast({ title: "Health data saved", description: "Your BMI and health context were updated." });
+        },
+        onError: () => {
+          toast({ title: "Error", description: "Failed to save health data.", variant: "destructive" });
         },
       }
     );
@@ -175,6 +344,128 @@ export default function Tracker() {
             </Card>
           </motion.div>
 
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+            <Card className="rounded-[2rem] border-primary/10 shadow-md overflow-hidden bg-card/80 backdrop-blur-xl">
+              <CardHeader className="bg-primary/5 pb-4">
+                <CardTitle className="flex items-center gap-2 text-xl font-serif">
+                  <Activity className="h-5 w-5 text-primary" /> Personal Health Information
+                </CardTitle>
+                <CardDescription>These details stay with your tracker and help contextualize cycle insights.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <Form {...healthForm}>
+                  <form onSubmit={healthForm.handleSubmit(onHealthSubmit)} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField
+                        control={healthForm.control}
+                        name="heightCm"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Height (cm)</FormLabel>
+                            <FormControl>
+                              <Input type="number" className="rounded-xl" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={healthForm.control}
+                        name="weightKg"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Weight (kg)</FormLabel>
+                            <FormControl>
+                              <Input type="number" className="rounded-xl" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={healthForm.control}
+                      name="bloodGroup"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Blood Group</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger className="rounded-xl">
+                                <SelectValue placeholder="Select blood group" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {BLOOD_GROUPS.map((group) => (
+                                <SelectItem key={group} value={group}>
+                                  {group}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={healthForm.control}
+                      name="allergies"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Allergies</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Optional allergies..." className="rounded-xl resize-none h-20" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={healthForm.control}
+                      name="medicalConditions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Medical Conditions</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Optional conditions..." className="rounded-xl resize-none h-20" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={healthForm.control}
+                      name="medications"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Medications</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Optional medications..." className="rounded-xl resize-none h-20" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <HealthSummary
+                      heightCm={liveHeight}
+                      weightKg={liveWeight}
+                      bloodGroup={liveBloodGroup}
+                    />
+
+                    <Button type="submit" className="w-full rounded-xl hover-elevate" disabled={updateProfile.isPending}>
+                      {updateProfile.isPending ? "Saving..." : "Save Health Information"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {currentCycle && (
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <Card className="rounded-[2rem] border-primary/10 shadow-md bg-gradient-to-br from-secondary/30 to-background overflow-hidden">
@@ -206,6 +497,24 @@ export default function Tracker() {
                       {format(new Date(currentCycle.fertileWindowStart), "MMM d")} - {format(new Date(currentCycle.fertileWindowEnd), "MMM d")}
                     </span>
                   </div>
+                  <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                    <span className="text-muted-foreground text-sm flex items-center gap-2">
+                      <Scale className="h-4 w-4 text-primary" /> BMI Context
+                    </span>
+                    <span className="font-medium text-foreground text-sm text-right">
+                      {liveBmi ?? "N/A"} {liveBmi ? `(${liveBmiCategory})` : ""}
+                    </span>
+                  </div>
+                  {profileStore?.allergies || profileStore?.medicalConditions || profileStore?.medications ? (
+                    <div className="rounded-2xl border border-border/50 bg-background/60 p-4">
+                      <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Health notes</p>
+                      <p className="mt-2 text-sm text-foreground/80">
+                        {profileStore.allergies ? `Allergies: ${profileStore.allergies}. ` : ""}
+                        {profileStore.medicalConditions ? `Conditions: ${profileStore.medicalConditions}. ` : ""}
+                        {profileStore.medications ? `Medications: ${profileStore.medications}.` : ""}
+                      </p>
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
             </motion.div>
