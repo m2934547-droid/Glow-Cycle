@@ -10,17 +10,17 @@ const defaultProducts: Array<{
   category: string;
   imageUrl: string;
 }> = [
-  { name: "Whisper Ultra Soft Sanitary Pads", description: "Breathable and rash-free pads for daily comfort.", price: 149, category: "Sanitary Pads", imageUrl: "https://images.unsplash.com/photo-1615486511262-5f9ebf975f0c?auto=format&fit=crop&w=800&q=80" },
+  { name: "Ultra Soft Sanitary Pads", description: "Breathable and rash-free pads for daily comfort.", price: 149, category: "Sanitary Pads", imageUrl: "/ultra-soft-sanitary-pads.jpg" },
   { name: "Overnight Maxi Pads", description: "Extra long overnight protection with leak-lock core.", price: 189, category: "Sanitary Pads", imageUrl: "/overnight-maxi-pads.avif" },
   { name: "Organic Cotton Tampons", description: "Chemical-free tampons made with organic cotton.", price: 229, category: "Tampons", imageUrl: "/organic-cotton-tampons.png" },
-  { name: "Overnight Period Panty", description: "For overnight protection with smooth comfort.", price: 249, category: "Comfort Kits", imageUrl: "/overnight-period-panty.jpg" },
-  { name: "Reusable Menstrual Cup - Small", description: "Medical-grade silicone cup for up to 8 hours.", price: 599, category: "Menstrual Cups", imageUrl: "/reusable-menstrual-cup.jpg" },
-  { name: "Reusable Menstrual Cup - Large", description: "Comfort-fit large size cup for long wear.", price: 649, category: "Menstrual Cups", imageUrl: "/reusable-menstrual-cup.jpg" },
+  { name: "Super Absorbency Tampons", description: "For heavy flow days with smooth insertion.", price: 249, category: "Tampons", imageUrl: "/super-absorbency-tampons.jpg" },
+  { name: "Reusable Menstrual Cup - Small", description: "Medical-grade silicone cup for up to 8 hours.", price: 599, category: "Menstrual Cups", imageUrl: "/reusable-menstrual-cup-small.jpg" },
+  { name: "Reusable Menstrual Cup - Large", description: "Comfort-fit large size cup for long wear.", price: 649, category: "Menstrual Cups", imageUrl: "/reusable-menstrual-cup-large.jpg" },
   { name: "Ibuprofen Pain Relief", description: "Fast acting relief for cramps and body pain.", price: 99, category: "Pain Relief", imageUrl: "/ibuprofen-pain-relief.jpg" },
   { name: "Herbal Cramp Relief Tea", description: "Natural ginger and chamomile blend for cramp support.", price: 199, category: "Pain Relief", imageUrl: "/herbal-cramp-relief-tea.jpg" },
-  { name: "Electric Heating Pad", description: "Adjustable heat levels for abdominal comfort.", price: 899, category: "Heating Pads", imageUrl: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?auto=format&fit=crop&w=800&q=80" },
-  { name: "Microwave Heat Pack", description: "Lavender infused reusable heat pack.", price: 349, category: "Heating Pads", imageUrl: "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=800&q=80" },
-  { name: "Self-Care Comfort Kit", description: "Includes tea, eye mask, and soothing balm.", price: 499, category: "Comfort Kits", imageUrl: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=800&q=80" },
+  { name: "Electric Heating Pad", description: "Adjustable heat levels for abdominal comfort.", price: 899, category: "Heating Pads", imageUrl: "/electric-heating-pad.jpg" },
+  { name: "Microwave Heat Pack", description: "Lavender infused reusable heat pack.", price: 349, category: "Heating Pads", imageUrl: "/microwave-heat-pack.png" },
+  { name: "Self-Care Comfort Kit", description: "Includes tea, eye mask, and soothing balm.", price: 499, category: "Comfort Kits", imageUrl: "/self-care-comfort-kit.png" },
   { name: "Period Emergency Pouch", description: "Portable pouch with pads, wipes, and disposal bags.", price: 279, category: "Comfort Kits", imageUrl: "/period-emergency-pouch.jpg" },
 ];
 
