@@ -1,6 +1,10 @@
 import { Router, type IRouter, type Response } from "express";
 import { asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import { access, mkdir, readFile, unlink, writeFile } from "fs/promises";
+import path from "path";
 import { db, orderTrackingEventsTable, ordersTable, usersTable } from "@workspace/db";
+import { z } from "zod";
 import {
   AdminOrderSearchQuery,
   AdminOrderSearchResponse,
@@ -14,6 +18,14 @@ import { requireAdmin } from "../lib/permissions";
 
 const router: IRouter = Router();
 const subscribers = new Map<string, Set<Response>>();
+const profileImageStorageDir = path.join(process.cwd(), "uploads", "profile-images");
+const profileImageManifestPath = path.join(profileImageStorageDir, "manifest.json");
+const profileImageBodySchema = z.object({
+  imageDataUrl: z.string().min(1),
+  fileName: z.string().optional(),
+});
+const allowedProfileImageMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const maxProfileImageBytes = 5 * 1024 * 1024;
 
 type TrackingPayload = {
   order: {
@@ -124,6 +136,152 @@ function broadcast(orderCode: string, payload: unknown) {
     response.write(message);
   }
 }
+
+type StoredProfileImage = {
+  filename: string;
+  url: string;
+  mimeType: string;
+  updatedAt: string;
+};
+
+type ProfileImageManifest = Record<string, StoredProfileImage>;
+
+async function ensureProfileImageStorage() {
+  await mkdir(profileImageStorageDir, { recursive: true });
+}
+
+async function readProfileImageManifest(): Promise<ProfileImageManifest> {
+  try {
+    const raw = await readFile(profileImageManifestPath, "utf8");
+    const parsed = JSON.parse(raw) as ProfileImageManifest;
+    return typeof parsed === "object" && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+async function writeProfileImageManifest(manifest: ProfileImageManifest) {
+  await ensureProfileImageStorage();
+  await writeFile(profileImageManifestPath, JSON.stringify(manifest, null, 2), "utf8");
+}
+
+function parseProfileImageDataUrl(dataUrl: string) {
+  const match = dataUrl.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (!match) {
+    return null;
+  }
+
+  const mimeType = match[1].toLowerCase();
+  if (!allowedProfileImageMimeTypes.has(mimeType)) {
+    return null;
+  }
+
+  const buffer = Buffer.from(match[2].replace(/\s+/g, ""), "base64");
+  if (buffer.length === 0 || buffer.length > maxProfileImageBytes) {
+    return null;
+  }
+
+  return { mimeType, buffer };
+}
+
+function getProfileImageExtension(mimeType: string) {
+  if (mimeType === "image/jpeg") return "jpg";
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  if (mimeType === "image/gif") return "gif";
+  return "bin";
+}
+
+router.get("/users/profile/avatar", async (req, res): Promise<void> => {
+  const userId = requireAuth(req, res);
+  if (!userId) return;
+
+  const manifest = await readProfileImageManifest();
+  const image = manifest[String(userId)] ?? null;
+
+  res.json({
+    profileImageUrl: image?.url ?? null,
+    updatedAt: image?.updatedAt ?? null,
+  });
+});
+
+router.post("/users/profile/avatar", async (req, res): Promise<void> => {
+  const userId = requireAuth(req, res);
+  if (!userId) return;
+
+  const parsed = profileImageBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const parsedImage = parseProfileImageDataUrl(parsed.data.imageDataUrl);
+  if (!parsedImage) {
+    res.status(400).json({ error: "Please upload a valid JPG, PNG, WEBP, or GIF image under 5 MB." });
+    return;
+  }
+
+  const manifest = await readProfileImageManifest();
+  const previousImage = manifest[String(userId)];
+
+  if (previousImage) {
+    try {
+      await unlink(path.join(profileImageStorageDir, previousImage.filename));
+    } catch {
+      // Ignore missing files when users replace their image.
+    }
+  }
+
+  await ensureProfileImageStorage();
+  const filename = `user-${userId}-${Date.now()}-${randomUUID()}.${getProfileImageExtension(parsedImage.mimeType)}`;
+  const filePath = path.join(profileImageStorageDir, filename);
+  await writeFile(filePath, parsedImage.buffer);
+
+  const profileImageUrl = `/api/uploads/profile-images/${filename}`;
+  manifest[String(userId)] = {
+    filename,
+    url: profileImageUrl,
+    mimeType: parsedImage.mimeType,
+    updatedAt: new Date().toISOString(),
+  };
+  await writeProfileImageManifest(manifest);
+
+  try {
+    const usersTableAny = usersTable as typeof usersTable & Record<string, unknown>;
+    if ("profileImageUrl" in usersTableAny) {
+      await db
+        .update(usersTable)
+        .set({ profileImageUrl } as never)
+        .where(eq(usersTable.id, userId));
+    }
+  } catch {
+    // The manifest is the durable fallback when the users table does not expose the column.
+  }
+
+  res.status(201).json({
+    profileImageUrl,
+    updatedAt: manifest[String(userId)].updatedAt,
+  });
+});
+
+router.get("/uploads/profile-images/:filename", async (req, res): Promise<void> => {
+  const filename = path.basename(req.params.filename);
+  const filePath = path.join(profileImageStorageDir, filename);
+
+  try {
+    await access(filePath);
+  } catch {
+    res.status(404).json({ error: "Image not found" });
+    return;
+  }
+
+  const manifest = await readProfileImageManifest();
+  const image = Object.values(manifest).find((entry) => entry.filename === filename);
+
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.type(image?.mimeType ?? "application/octet-stream");
+  res.send(await readFile(filePath));
+});
 
 router.get("/orders/:orderId/tracking", async (req, res): Promise<void> => {
   const userId = requireAuth(req, res);

@@ -120,6 +120,22 @@ export default function Profile() {
     setActiveView((currentView) => (currentView === nextView ? currentView : nextView));
   }, [location]);
 
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const nextView = getProfileView(window.location.pathname + window.location.search + window.location.hash);
+      setActiveView((currentView) => (currentView === nextView ? currentView : nextView));
+    };
+
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    window.addEventListener("hashchange", syncFromUrl);
+
+    return () => {
+      window.removeEventListener("popstate", syncFromUrl);
+      window.removeEventListener("hashchange", syncFromUrl);
+    };
+  }, []);
+
   if (!activeUser && isLoading) {
     return <ProfileLoading />;
   }

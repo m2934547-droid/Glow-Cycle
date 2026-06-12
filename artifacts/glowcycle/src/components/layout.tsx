@@ -9,7 +9,7 @@ import { Footer } from "@/components/footer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useCartDrawer } from "@/components/cart-drawer";
-import { getProfileInitials, useProfileStore } from "@/lib/profile-store";
+import { getProfileInitials, useProfileImage } from "@/lib/profile-avatar";
 
 function ProfileDropdown({
   open,
@@ -19,9 +19,10 @@ function ProfileDropdown({
   onOpenMyProfile,
   onNavigate,
   onHelpSupport,
+  onOpenAddPartner,
   name,
   email,
-  avatarDataUrl,
+  avatarUrl,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,10 +31,17 @@ function ProfileDropdown({
   onOpenMyProfile: () => void;
   onNavigate: (href: string) => void;
   onHelpSupport: () => void;
+  onOpenAddPartner: () => void;
   name: string;
   email: string;
-  avatarDataUrl?: string | null;
+  avatarUrl?: string | null;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [avatarUrl]);
+
   const menuItemClassName =
     "group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-[#4A2C3A] transition-all duration-200 hover:bg-[#FFF0F6] hover:text-[#FF5CA8] hover:translate-x-0.5 focus:bg-[#FFF0F6] focus:text-[#FF5CA8]";
 
@@ -43,7 +51,7 @@ function ProfileDropdown({
         <button
           type="button"
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full border bg-white text-[#4A2C3A] shadow-sm transition-all duration-200 shrink-0",
+            "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border bg-white text-[#4A2C3A] shadow-sm transition-all duration-200 shrink-0",
             open
               ? "border-[#F3DCE7] shadow-[0_10px_24px_rgba(255,92,168,0.10)]"
               : "border-[#F3DCE7] hover:border-[#FF5CA8]/30 hover:text-[#FF5CA8]"
@@ -51,8 +59,13 @@ function ProfileDropdown({
           aria-label="Open profile menu"
           title="Open profile menu"
         >
-          {avatarDataUrl ? (
-            <img src={avatarDataUrl} alt="" className="h-full w-full rounded-full object-cover" />
+          {avatarUrl && !imageFailed ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="h-full w-full rounded-full object-cover"
+              onError={() => setImageFailed(true)}
+            />
           ) : (
             <span className="text-[11px] font-semibold text-[#8B6F7D]">{getProfileInitials(name)}</span>
           )}
@@ -68,8 +81,13 @@ function ProfileDropdown({
           <div className="flex items-center gap-4">
             <div className="relative h-14 w-14 shrink-0 rounded-full bg-gradient-to-br from-[#FF5CA8] to-[#FFEAF3] p-[2px] shadow-[0_8px_20px_rgba(255,92,168,0.18)]">
               <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#FF5CA8]">
-                {avatarDataUrl ? (
-                  <img src={avatarDataUrl} alt="" className="h-full w-full rounded-full object-cover" />
+                {avatarUrl && !imageFailed ? (
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className="h-full w-full rounded-full object-cover"
+                    onError={() => setImageFailed(true)}
+                  />
                 ) : (
                   <UserCircle2 className="h-8 w-8" />
                 )}
@@ -96,7 +114,7 @@ function ProfileDropdown({
             <span>Profile Overview</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem className={menuItemClassName} onSelect={() => onNavigate("/profile?view=add-partner")}>
+          <DropdownMenuItem className={menuItemClassName} onSelect={onOpenAddPartner}>
             <UserPlus className="h-4 w-4 text-[#FF5CA8]" />
             <span>Add Partner</span>
           </DropdownMenuItem>
@@ -141,7 +159,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const { openCart, cartItemCount } = useCartDrawer();
-  const [profileStore] = useProfileStore(user);
+  const { data: profileAvatar } = useProfileImage(!!user);
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -160,6 +178,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const handleOpenMyProfile = () => {
     setProfileMenuOpen(false);
     setLocation("/profile?view=my-profile");
+  };
+
+  const handleOpenAddPartner = () => {
+    setProfileMenuOpen(false);
+    setLocation("/profile?view=add-partner");
   };
 
   const handleNavigate = (href: string) => {
@@ -263,9 +286,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   onOpenMyProfile={handleOpenMyProfile}
                   onNavigate={handleNavigate}
                   onHelpSupport={handleHelpSupport}
+                  onOpenAddPartner={handleOpenAddPartner}
                   name={user?.name ?? "Manu"}
                   email={user?.email ?? "manujotkaur5267@gmail.com"}
-                  avatarDataUrl={profileStore?.avatarDataUrl}
+                  avatarUrl={profileAvatar?.profileImageUrl ?? null}
                 />
               </>
             ) : (

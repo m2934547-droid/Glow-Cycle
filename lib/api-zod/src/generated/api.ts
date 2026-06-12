@@ -56,6 +56,7 @@ export const SignupVerifyOtpResponse = zod.object({
     name: zod.string(),
     email: zod.string(),
     phoneNumber: zod.string().optional(),
+    profileImageUrl: zod.string().optional(),
     age: zod.number(),
     heightCm: zod.number(),
     weightKg: zod.number(),
@@ -81,6 +82,7 @@ export const LoginResponse = zod.object({
     name: zod.string(),
     email: zod.string(),
     phoneNumber: zod.string().optional(),
+    profileImageUrl: zod.string().optional(),
     age: zod.number(),
     heightCm: zod.number(),
     weightKg: zod.number(),
@@ -107,6 +109,7 @@ export const GetMeResponse = zod.object({
   name: zod.string(),
   email: zod.string(),
   phoneNumber: zod.string().optional(),
+  profileImageUrl: zod.string().optional(),
   age: zod.number(),
   heightCm: zod.number(),
   weightKg: zod.number(),
@@ -125,6 +128,7 @@ export const UpdateProfileBody = zod.object({
   heightCm: zod.number().optional(),
   weightKg: zod.number().optional(),
   phoneNumber: zod.string().optional(),
+  profileImageUrl: zod.string().optional(),
 });
 
 export const UpdateProfileResponse = zod.object({
@@ -132,6 +136,7 @@ export const UpdateProfileResponse = zod.object({
   name: zod.string(),
   email: zod.string(),
   phoneNumber: zod.string().optional(),
+  profileImageUrl: zod.string().optional(),
   age: zod.number(),
   heightCm: zod.number(),
   weightKg: zod.number(),
