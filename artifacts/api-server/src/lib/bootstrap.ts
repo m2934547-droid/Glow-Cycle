@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, ensureDatabaseReady, productsTable, usersTable } from "@workspace/db";
 import { logger } from "./logger";
 import { hashPassword } from "./password";
-import { OVERNIGHT_MAXI_PADS_IMAGE_URL } from "./product-image";
+import { OVERNIGHT_MAXI_PADS_IMAGE_URL, ORGANIC_COTTON_TAMPONS_IMAGE_URL } from "./product-image";
 
 const defaultProducts: Array<{
   name: string;
@@ -13,7 +13,7 @@ const defaultProducts: Array<{
 }> = [
   { name: "Ultra Soft Sanitary Pads", description: "Breathable and rash-free pads for daily comfort.", price: 149, category: "Sanitary Pads", imageUrl: "/ultra-soft-sanitary-pads.jpg" },
   { name: "Overnight Maxi Pads", description: "Extra long overnight protection with leak-lock core.", price: 189, category: "Sanitary Pads", imageUrl: OVERNIGHT_MAXI_PADS_IMAGE_URL },
-  { name: "Organic Cotton Tampons", description: "Chemical-free tampons made with organic cotton.", price: 229, category: "Tampons", imageUrl: "/organic-cotton-tampons.png" },
+  { name: "Organic Cotton Tampons", description: "Chemical-free tampons made with organic cotton.", price: 229, category: "Tampons", imageUrl: ORGANIC_COTTON_TAMPONS_IMAGE_URL },
   { name: "Super Absorbency Tampons", description: "For heavy flow days with smooth insertion.", price: 249, category: "Tampons", imageUrl: "/super-absorbency-tampons.jpg" },
   { name: "Reusable Menstrual Cup - Small", description: "Medical-grade silicone cup for up to 8 hours.", price: 599, category: "Menstrual Cups", imageUrl: "/reusable-menstrual-cup-small.jpg" },
   { name: "Reusable Menstrual Cup - Large", description: "Comfort-fit large size cup for long wear.", price: 649, category: "Menstrual Cups", imageUrl: "/reusable-menstrual-cup-large.jpg" },
