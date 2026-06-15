@@ -78,6 +78,13 @@ export async function bootstrapAppData(): Promise<void> {
     logger.info({ count: defaultProducts.length }, "Seeded default store products");
   }
 
+  for (const product of defaultProducts) {
+    await db
+      .update(productsTable)
+      .set({ imageUrl: product.imageUrl })
+      .where(eq(productsTable.name, product.name));
+  }
+
   const storeCountResult = await db.execute(`SELECT COUNT(*)::int AS count FROM stores`);
   const storeCount = Number((storeCountResult.rows[0] as { count?: number } | undefined)?.count ?? 0);
   if (storeCount === 0) {
