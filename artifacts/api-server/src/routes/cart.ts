@@ -4,6 +4,7 @@ import { db, cartItemsTable, productsTable, ordersTable, orderItemsTable } from 
 import { AddToCartBody, RemoveCartItemParams } from "@workspace/api-zod";
 import { requireAuth } from "./users";
 import { randomUUID } from "crypto";
+import { getProductImageUrl } from "../lib/product-image";
 
 const router: IRouter = Router();
 
@@ -29,7 +30,7 @@ async function getUserCart(userId: number) {
       quantity: item.quantity,
       product: {
         ...item.product,
-        imageUrl: item.product.imageUrl ?? undefined,
+        imageUrl: getProductImageUrl(item.product.name, item.product.imageUrl),
         createdAt: item.product.createdAt.toISOString(),
       },
     })),

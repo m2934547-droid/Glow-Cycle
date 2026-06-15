@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, productsTable, usersTable } from "@workspace/db";
 import { CreateProductBody, GetProductsQueryParams, UpdateProductParams, UpdateProductBody, DeleteProductParams } from "@workspace/api-zod";
 import { requireAuth } from "./users";
+import { getProductImageUrl } from "../lib/product-image";
 
 const router: IRouter = Router();
 
@@ -21,7 +22,7 @@ async function requireAdmin(req: any, res: any): Promise<boolean> {
 function formatProduct(p: typeof productsTable.$inferSelect) {
   return {
     ...p,
-    imageUrl: p.imageUrl ?? undefined,
+    imageUrl: getProductImageUrl(p.name, p.imageUrl),
     createdAt: p.createdAt.toISOString(),
   };
 }
